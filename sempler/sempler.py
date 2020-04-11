@@ -37,10 +37,9 @@ from sempler import utils, functions
 # ANM class
 class ANM:
     """
-    Represents an (acyclic) additive noise model. sample() generates
-    observational and interventional samples from it.
+    Represents an general (acyclic) additive noise model.
     """
-    def __init__(self, A, functions, noise_distributions):
+    def __init__(self, A, assignments, noise_distributions):
         """Parameters:
           - A: pxp onnectivity matrix (A_ij = 1 if i appears in the assignment of j)
           - functions: list of p functions representing
@@ -48,25 +47,23 @@ class ANM:
           - noise_distributions: list of p functions that generate
             samples of each variable's noise distribution
         """
-        try:
-            self.ordering = utils.topological_ordering(A)
-            self.p = len(A)
-            self.A = deepcopy(A)
-            self.functions = [functions.null if fun is None else deepcopy(fun) for fun in functions]
-            self.noise_distributions = deepcopy(noise_distributions)
-        except NetworkXUnfeasible:
-            raise Exception("Graph must be a directed acyclic graph")
-
+        self.ordering = utils.topological_ordering(A)
+        self.p = len(A)
+        self.A = deepcopy(A)
+        self.assignments = [functions.null if fun is None else deepcopy(fun) for fun in assignments]
+        self.noise_distributions = deepcopy(noise_distributions)
+            
     def sample(self, n, do_interventions = {}, shift_interventions = {}, random_state = None, debug = False):
         # Set random state (if requested)
         np.random.seed(random_state) if random_state is not None else None
         # Sample according to a topological ordering of the connectivity matrix
         X = np.zeros((n, self.p))
         for i in self.ordering:
+            print(i, X) if debug else None
             if i in do_interventions:
                 X[:,i] = do_interventions[i](n)
             else:
-                assignment = np.transpose(self.functions[i](X[:, self.A[:,i] == 1]))
+                assignment = np.transpose(self.assignments[i](X[:, self.A[:,i] == 1]))
                 noise = self.noise_distributions[i](n)
                 shift = shift_interventions[i](n) if i in shift_interventions else 0
                 X[:,i] = assignment + noise + shift
@@ -74,13 +71,11 @@ class ANM:
 
 
 #---------------------------------------------------------------------
-# LGSEM class
+# 
 
-class LGSEM:
-    """
-    Represents an Linear Gaussian SEM. Initialization randomly
-    generates a new SEM. sample() generates observational and
-    interventional samples from it
+class LGANM:
+    """Represents a linear model with Gaussian additive noise
+    (i.e. Gaussian Bayesian Network).
     """
     
     def __init__(self, W, variances, intercepts = None, debug=False):
