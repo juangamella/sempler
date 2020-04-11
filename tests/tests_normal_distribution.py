@@ -1,32 +1,32 @@
-# BSD 3-Clause License
-
-# Copyright (c) 2020, Juan Luis Gamella Martín
-# All rights reserved.
+# Copyright 2019 Juan Luis Gamella Martin
 
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
+# modification, are permitted provided that the following conditions
+# are met:
 
-# 1. Redistributions of source code must retain the above copyright notice, this
-#    list of conditions and the following disclaimer.
+# 1. Redistributions of source code must retain the above copyright
+# notice, this list of conditions and the following disclaimer.
 
-# 2. Redistributions in binary form must reproduce the above copyright notice,
-#    this list of conditions and the following disclaimer in the documentation
-#    and/or other materials provided with the distribution.
+# 2. Redistributions in binary form must reproduce the above copyright
+# notice, this list of conditions and the following disclaimer in the
+# documentation and/or other materials provided with the distribution.
 
 # 3. Neither the name of the copyright holder nor the names of its
-#    contributors may be used to endorse or promote products derived from
-#    this software without specific prior written permission.
+# contributors may be used to endorse or promote products derived from
+# this software without specific prior written permission.
 
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
 
 #---------------------------------------------------------------------
 # Unit testing for module normal_distribution.py
@@ -196,11 +196,10 @@ class NormalDistributionTests(unittest.TestCase):
         # blankets of each node, test basic properties of the MSE
         # PRE: It is assumed that [1,...,p] is the causal ordering
         p = len(W)
-        ordering = np.arange(p)
         np.random.seed(42)
         if sample_weights:
             W = W * (np.random.uniform(size=W.shape) + 1) # avoid 0 weights (causal minimality)
-        A = sampling_matrix(W, ordering)
+        A = sampling_matrix(W)
         covariance = A @ A.T
         mean = np.random.uniform(size=p)
         joint = NormalDistribution(mean, covariance)
@@ -231,7 +230,7 @@ class NormalDistributionTests(unittest.TestCase):
         p = len(W)
         np.random.seed(42)
         W = W * (np.random.uniform(size=W.shape) + 1) # avoid 0 weights (causal minimality)
-        A = sampling_matrix(W, np.arange(p))
+        A = sampling_matrix(W)
         covariance = A @ A.T
         mean = np.random.uniform(size=p)
         joint = NormalDistribution(mean, covariance)

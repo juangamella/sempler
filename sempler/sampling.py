@@ -1,36 +1,35 @@
-# BSD 3-Clause License
-
-# Copyright (c) 2020, Juan Luis Gamella Martín
-# All rights reserved.
+# Copyright 2020 Juan Luis Gamella Martin
 
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
+# modification, are permitted provided that the following conditions
+# are met:
 
-# 1. Redistributions of source code must retain the above copyright notice, this
-#    list of conditions and the following disclaimer.
+# 1. Redistributions of source code must retain the above copyright
+# notice, this list of conditions and the following disclaimer.
 
-# 2. Redistributions in binary form must reproduce the above copyright notice,
-#    this list of conditions and the following disclaimer in the documentation
-#    and/or other materials provided with the distribution.
+# 2. Redistributions in binary form must reproduce the above copyright
+# notice, this list of conditions and the following disclaimer in the
+# documentation and/or other materials provided with the distribution.
 
 # 3. Neither the name of the copyright holder nor the names of its
-#    contributors may be used to endorse or promote products derived from
-#    this software without specific prior written permission.
+# contributors may be used to endorse or promote products derived from
+# this software without specific prior written permission.
 
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
 
 import numpy as np
 from sempler.normal_distribution import NormalDistribution
-from sempler.utils import sampling_matrix
 
 #---------------------------------------------------------------------
 # LGSEM class
@@ -42,10 +41,9 @@ class LGSEM:
     interventional samples from it
     """
     
-    def __init__(self, W, ordering, variances, intercepts = None, debug=False):
+    def __init__(self, W, variances, intercepts = None, debug=False):
         """Generate a random linear gaussian SEM, given
-        - W: weight matrix
-        - ordering: causal ordering of the variables
+        - W: weight matrix representing a DAG
         - variances: either a vector of variances or a tuple
           indicating range for uniform sampling
         - intercepts: either a vector of intercepts, a tuple
@@ -57,7 +55,6 @@ class LGSEM:
 
         """
         self.W = W.copy()
-        self.ordering = ordering.copy()
         self.p = len(W)
 
         # Set variances
@@ -104,7 +101,7 @@ class LGSEM:
             W[:,targets] = 0
             
         # Sampling by building the joint distribution
-        A = sampling_matrix(W, self.ordering)
+        A = np.linalg.inv(np.eye(self.p) - W.T)
         mean = A @ intercepts
         covariance = A @ np.diag(variances) @ A.T
         distribution = NormalDistribution(mean, covariance)
@@ -116,7 +113,7 @@ class LGSEM:
 #---------------------------------------------------------------------
 # DAG Generating Functions
 
-def dag_avg_deg(p, k, w_min, w_max, debug=False, random_state=None):
+def dag_avg_deg(p, k, w_min, w_max, debug=False, random_state=None, return_ordering=False):
     """
     Generate a random graph with p nodes and average degree k
     """
@@ -132,17 +129,17 @@ def dag_avg_deg(p, k, w_min, w_max, debug=False, random_state=None):
     
     # Permute rows/columns according to random topological ordering
     permutation = np.random.permutation(p)
-    ordering = np.argsort(permutation)
     # Note the actual topological ordering is the "conjugate" of permutation eg. [3,1,2] -> [2,3,1]
-    print("ordering = %s" % ordering) if debug else None
     print("avg degree = %0.2f" % (np.sum(A) * 2 / len(A))) if debug else None
-    
-    return (W[permutation, :][:, permutation], ordering)
+    if return_ordering:
+        return (W[permutation, :][:, permutation], np.argsort(permutation))
+    else:
+        return W[permutation, :][:, permutation]
 
 def dag_full(p, w_min=1, w_max=1, debug=False):
     """Creates a fully connected DAG (ie. upper triangular adj. matrix
-    with all ones) and causal ordering same as variable indices"""
+    with all ones)"""
     A = np.triu(np.ones((p,p)), k=1)
     weights = np.random.uniform(w_min, w_max, size=A.shape)
     W = A * weights
-    return (W, np.arange(p))
+    return W

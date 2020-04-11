@@ -1,36 +1,37 @@
-# BSD 3-Clause License
-
-# Copyright (c) 2020, Juan Luis Gamella Martín
-# All rights reserved.
+# Copyright 2020 Juan Luis Gamella Martin
 
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
+# modification, are permitted provided that the following conditions
+# are met:
 
-# 1. Redistributions of source code must retain the above copyright notice, this
-#    list of conditions and the following disclaimer.
+# 1. Redistributions of source code must retain the above copyright
+# notice, this list of conditions and the following disclaimer.
 
-# 2. Redistributions in binary form must reproduce the above copyright notice,
-#    this list of conditions and the following disclaimer in the documentation
-#    and/or other materials provided with the distribution.
+# 2. Redistributions in binary form must reproduce the above copyright
+# notice, this list of conditions and the following disclaimer in the
+# documentation and/or other materials provided with the distribution.
 
 # 3. Neither the name of the copyright holder nor the names of its
-#    contributors may be used to endorse or promote products derived from
-#    this software without specific prior written permission.
+# contributors may be used to endorse or promote products derived from
+# this software without specific prior written permission.
 
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
 
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
+import itertools
 
 def matrix_block(M, rows, cols):
     """
@@ -41,24 +42,28 @@ def matrix_block(M, rows, cols):
     idx_cols = np.tile(cols, (len(rows),1)).flatten()
     return M[idx_rows, idx_cols].reshape(len(rows), len(cols))
 
-def sampling_matrix(W, ordering):
-    """Given the weighted adjacency matrix and ordering of a DAG, return
+def sampling_matrix(W):
+    """Given the weighted adjacency matrix of a DAG, return
     the matrix A such that the DAG generates samples
       A @ diag(var)^1/2 @ Z + mu
     where Z is an isotropic normal, and var/mu are the variances/means
     of the noise variables of the graph.
     """
     p = len(W)
-    A = np.eye(p)
-    W = W + A # set diagonal of W to 1
-    for i in ordering:
-        A[i,:] = np.sum(W[:,[i]] * A, axis=0)
-    return A
+    return np.linalg.inv(np.eye(p) - W.T)
 
 def all_but(k,p):
     """Return [0,...,p-1] without k"""
     k = np.atleast_1d(k)
     return [i for i in range(p) if not i in k]
+
+def combinations(p, target):
+    """Return all possible subsets of the set {0...p-1} \ {target}"""
+    base = set(range(p)) - {target}
+    sets = []
+    for size in range(p):
+        sets += [set(s) for s in itertools.combinations(base, size)]
+    return sets
 
 def nonzero(A, tol=1e-12):
     """Return the indices of the nonzero (up to tol) elements in A"""
@@ -130,6 +135,11 @@ def plot_graph(W, block=False):
     fig.set_facecolor("white")
     plt.show(block = block)
 
+def allclose(A, B, rtol=1e-5, atol=1e-8):
+    """Use np.allclose to compare, but relative tolerance is relative to
+    the smallest element compared
+    """
+    return np.allclose(np.maximum(A,B), np.minimum(A,B), rtol, atol)
     
 # Example graphs
 
@@ -149,8 +159,7 @@ def eg1():
                [0],
                [1,2],
                [3]]
-    ordering = np.arange(5)
-    return W, ordering, parents, markov_blankets
+    return W, parents, markov_blankets
 
 def eg2():
     W = np.array([[0, 1, -1, 0, 0, 0],
@@ -171,8 +180,7 @@ def eg2():
                [1,2],
                [3,5],
                []]
-    ordering = np.arange(6)
-    return W, ordering, parents, markov_blankets
+    return W, parents, markov_blankets
 
 def eg3():
     W = np.array([[0, 1, -1, 0, 0, 0, 0, 0],
@@ -199,8 +207,7 @@ def eg3():
                [],
                [5],
                [4]]
-    ordering = np.arange(8)
-    return W, ordering, parents, markov_blankets
+    return W, parents, markov_blankets
 
 def eg4():
     W = np.array([[0,0,1,0],
@@ -215,8 +222,7 @@ def eg4():
                [],
                [0,1],
                [2]]
-    ordering = np.arange(4)
-    return W, ordering, parents, markov_blankets
+    return W, parents, markov_blankets
 
 def eg5():
     W = np.array([[0., 1., 0., 0., 0., 0., 0., 0.],
@@ -252,7 +258,7 @@ def eg5():
                        [2,3,7],
                        [3,4,0,7],
                        [0,4,5,2,3,6]]
-    return W, ordering, parents, markov_blankets
+    return W, parents, markov_blankets
 
 def eg6():
     W = np.array([[0, 0, 1, 0, 1],
@@ -260,7 +266,6 @@ def eg6():
                   [0, 0, 0, 1, 0],
                   [0, 0, 0, 0, 1],
                   [0, 0, 0, 0, 0]])
-    ordering = np.arange(len(W))
     parents = [[],
                [],
                [0,1],
@@ -276,5 +281,5 @@ def eg6():
                        [0,1,3],
                        [2,4,0,1],
                        [0,1,3]]
-    return W, ordering, parents, markov_blankets
+    return W, parents, markov_blankets
 
