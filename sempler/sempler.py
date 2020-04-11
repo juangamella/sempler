@@ -31,7 +31,8 @@
 import numpy as np
 from copy import deepcopy
 from sempler.normal_distribution import NormalDistribution
-from sempler import utils
+from sempler import utils, functions
+
 #---------------------------------------------------------------------
 # ANM class
 class ANM:
@@ -51,14 +52,27 @@ class ANM:
             self.ordering = utils.topological_ordering(A)
             self.p = len(A)
             self.A = deepcopy(A)
-            self.functions = deepcopy(functions)
+            self.functions = [functions.null if fun is None else deepcopy(fun) for fun in functions]
             self.noise_distributions = deepcopy(noise_distributions)
         except NetworkXUnfeasible:
             raise Exception("Graph must be a directed acyclic graph")
 
-    def sample(self, n, do_interventions = None, shift_interventions = None):
-        return np.zeros((n, self.p))
-            
+    def sample(self, n, do_interventions = {}, shift_interventions = {}, random_state = None, debug = False):
+        # Set random state (if requested)
+        np.random.seed(random_state) if random_state is not None else None
+        # Sample according to a topological ordering of the connectivity matrix
+        X = np.zeros((n, self.p))
+        for i in self.ordering:
+            if i in do_interventions:
+                X[:,i] = do_interventions[i](n)
+            else:
+                assignment = np.transpose(self.functions[i](X[:, self.A[:,i] == 1]))
+                noise = self.noise_distributions[i](n)
+                shift = shift_interventions[i](n) if i in shift_interventions else 0
+                X[:,i] = assignment + noise + shift
+        return X
+
+
 #---------------------------------------------------------------------
 # LGSEM class
 

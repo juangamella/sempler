@@ -114,7 +114,7 @@ def ancestors(i, W):
 def topological_ordering(A):
     """Return a topological ordering for the DAG with adjacency matrix A"""
     G = nx.from_numpy_matrix(A, create_using = nx.DiGraph)
-    return nx.algorithms.dag.topological_sort(G)
+    return list(nx.algorithms.dag.topological_sort(G))
     
 
 def plot_graph(W, block=False):
