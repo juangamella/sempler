@@ -71,8 +71,7 @@ class ANM:
 
 
 #---------------------------------------------------------------------
-# 
-
+# LGANM class
 class LGANM:
     """Represents a linear model with Gaussian additive noise
     (i.e. Gaussian Bayesian Network).

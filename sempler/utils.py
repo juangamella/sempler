@@ -57,11 +57,11 @@ def all_but(k,p):
     k = np.atleast_1d(k)
     return [i for i in range(p) if not i in k]
 
-def combinations(p, target):
+def combinations(p, target, empty=True):
     """Return all possible subsets of the set {0...p-1} \ {target}"""
     base = set(range(p)) - {target}
     sets = []
-    for size in range(p):
+    for size in range(0 if empty else 1, p):
         sets += [set(s) for s in itertools.combinations(base, size)]
     return sets
 

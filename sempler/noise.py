@@ -43,3 +43,6 @@ def uniform(lo=0, hi=1):
 
 def zero():
     return lambda n: np.zeros(n)
+
+def laplace(mean=0, scale=1):
+    return lambda n: np.random.laplace(mean, scale, m)
