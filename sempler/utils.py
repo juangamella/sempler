@@ -57,11 +57,11 @@ def all_but(k,p):
     k = np.atleast_1d(k)
     return [i for i in range(p) if not i in k]
 
-def combinations(p, target):
+def combinations(p, target, empty=True):
     """Return all possible subsets of the set {0...p-1} \ {target}"""
     base = set(range(p)) - {target}
     sets = []
-    for size in range(p):
+    for size in range(0 if empty else 1, p):
         sets += [set(s) for s in itertools.combinations(base, size)]
     return sets
 
@@ -110,6 +110,12 @@ def ancestors(i, W):
     """Return the ancestors of a node using the graph structure"""
     G = nx.from_numpy_matrix(W, create_using = nx.DiGraph)
     return nx.algorithms.dag.ancestors(G, i)
+
+def topological_ordering(A):
+    """Return a topological ordering for the DAG with adjacency matrix A"""
+    G = nx.from_numpy_matrix(A, create_using = nx.DiGraph)
+    return list(nx.algorithms.dag.topological_sort(G))
+    
 
 def plot_graph(W, block=False):
     G = nx.from_numpy_matrix(W, create_using = nx.DiGraph)

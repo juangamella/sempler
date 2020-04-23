@@ -29,20 +29,56 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import numpy as np
+from copy import deepcopy
 from sempler.normal_distribution import NormalDistribution
+from sempler import utils, functions
 
 #---------------------------------------------------------------------
-# LGSEM class
-
-class LGSEM:
+# ANM class
+class ANM:
     """
-    Represents an Linear Gaussian SEM. Initialization randomly
-    generates a new SEM. sample() generates observational and
-    interventional samples from it
+    Represents an general (acyclic) additive noise model.
+    """
+    def __init__(self, A, assignments, noise_distributions):
+        """Parameters:
+          - A: pxp onnectivity matrix (A_ij = 1 if i appears in the assignment of j)
+          - functions: list of p functions representing
+            the assignments of each variable
+          - noise_distributions: list of p functions that generate
+            samples of each variable's noise distribution
+        """
+        self.ordering = utils.topological_ordering(A)
+        self.p = len(A)
+        self.A = deepcopy(A)
+        self.assignments = [functions.null if fun is None else deepcopy(fun) for fun in assignments]
+        self.noise_distributions = deepcopy(noise_distributions)
+            
+    def sample(self, n, do_interventions = {}, shift_interventions = {}, random_state = None, debug = False):
+        # Set random state (if requested)
+        np.random.seed(random_state) if random_state is not None else None
+        # Sample according to a topological ordering of the connectivity matrix
+        X = np.zeros((n, self.p))
+        for i in self.ordering:
+            print(i, X) if debug else None
+            if i in do_interventions:
+                X[:,i] = do_interventions[i](n)
+            else:
+                assignment = np.transpose(self.assignments[i](X[:, self.A[:,i] == 1]))
+                noise = self.noise_distributions[i](n)
+                shift = shift_interventions[i](n) if i in shift_interventions else 0
+                X[:,i] = assignment + noise + shift
+        return X
+
+
+#---------------------------------------------------------------------
+# LGANM class
+class LGANM:
+    """Represents a linear model with Gaussian additive noise
+    (i.e. Gaussian Bayesian Network).
     """
     
     def __init__(self, W, variances, intercepts = None, debug=False):
-        """Generate a random linear gaussian SEM, given
+        """Generate a linear gaussian SEM, given
         - W: weight matrix representing a DAG
         - variances: either a vector of variances or a tuple
           indicating range for uniform sampling
@@ -143,3 +179,5 @@ def dag_full(p, w_min=1, w_max=1, debug=False):
     weights = np.random.uniform(w_min, w_max, size=A.shape)
     W = A * weights
     return W
+
+    
