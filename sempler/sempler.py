@@ -30,8 +30,8 @@
 
 import numpy as np
 from copy import deepcopy
-from sempler.normal_distribution import NormalDistribution
 from sempler import utils, functions
+from sempler.utils import matrix_block
 
 #---------------------------------------------------------------------
 # ANM class
@@ -88,15 +88,15 @@ class LGANM:
     (i.e. Gaussian Bayesian Network).
     """
     
-    def __init__(self, W, variances, intercepts = None):
+    def __init__(self, W, variances, means = None):
         """
         Parameters
         - W (np.array): weighted connectivity matrix representing a DAG
         - variances (np.array or tuple): either a vector of variances or a tuple
           indicating range for uniform sampling
-        - intercepts (np.array, tuple or None): either a vector of intercepts, a tuple
+        - means (np.array, tuple or None): either a vector of means, a tuple
           indicating the range for uniform sampling or None (zero
-          intercepts)
+          means)
         """
         self.W = W.copy()
         self.p = len(W)
@@ -107,15 +107,15 @@ class LGANM:
         else:
             self.variances = variances.copy()
             
-        # Set intercepts
-        if intercepts is None:
-            self.intercepts = np.zeros(self.p)
-        elif isinstance(intercepts, tuple):
-            self.intercepts = np.random.uniform(intercepts[0], intercepts[1], size=self.p)
+        # Set means
+        if means is None:
+            self.means = np.zeros(self.p)
+        elif isinstance(means, tuple):
+            self.means = np.random.uniform(means[0], means[1], size=self.p)
         else:
-            self.intercepts = intercepts.copy()
+            self.means = means.copy()
     
-    def sample(self, n=round(1e5), population=False, do_interventions=None, shift_interventions=None):
+    def sample(self, n=100, population=False, do_interventions=None, shift_interventions=None):
         """
         If population is set to False:
           - Generate n samples from a given Linear Gaussian SCM, under the given
@@ -128,13 +128,13 @@ class LGANM:
         # still want to keep the observational SEM
         W = self.W.copy()
         variances = self.variances.copy()
-        intercepts = self.intercepts.copy()
+        means = self.means.copy()
 
         # Perform shift interventions
         if shift_interventions is not None:
             shift_interventions = parse_interventions(shift_interventions)
             targets = shift_interventions[:,0].astype(int)
-            intercepts[targets] += shift_interventions[:,1]
+            means[targets] += shift_interventions[:,1]
             variances[targets] += shift_interventions[:,2]
         
         # Perform do interventions. Note that they take preference
@@ -142,13 +142,13 @@ class LGANM:
         if do_interventions is not None:
             do_interventions = parse_interventions(do_interventions)
             targets = do_interventions[:,0].astype(int)
-            intercepts[targets] = do_interventions[:,1]
+            means[targets] = do_interventions[:,1]
             variances[targets] = do_interventions[:,2]
             W[:,targets] = 0
             
         # Sampling by building the joint distribution
         A = np.linalg.inv(np.eye(self.p) - W.T)
-        mean = A @ intercepts
+        mean = A @ means
         covariance = A @ np.diag(variances) @ A.T
         distribution = NormalDistribution(mean, covariance)
         if not population:
@@ -204,4 +204,85 @@ def dag_full(p, w_min=1, w_max=1, debug=False):
     W = A * weights
     return W
 
+#---------------------------------------------------------------------
+# NormalDistribution class
+class NormalDistribution():
+    """Symbolic representation of a normal distribution that allows for
+    marginalization, conditioning and sampling
     
+    Attributes:
+      - mean: mean vector
+      - covariance: covariance matrix
+      - p: number of variables
+
+    """
+    def __init__(self, mean, covariance):
+        self.p = len(mean)
+        self.mean = mean.copy()
+        self.covariance = covariance.copy()
+
+    def sample(self, n):
+        """Sample from the distribution"""
+        return np.random.multivariate_normal(self.mean, self.covariance, size=n)
+
+    def marginal(self, X):
+        """Return the marginal distribution of the variables with indices X"""
+        # Parse params
+        X = np.atleast_1d(X)
+        # Compute marginal mean/variance
+        mean = self.mean[X].copy()
+        covariance = matrix_block(self.covariance, X, X).copy()
+        return NormalDistribution(mean, covariance)
+
+    def conditional(self, Y, X, x):
+        """Return the conditional distribution of the variables with indices Y
+        given observations x of the variables with indices X
+
+        """
+        # Parse params
+        Y = np.atleast_1d(Y)
+        X = np.atleast_1d(X)
+        x = np.atleast_1d(x)
+        if len(X) == 0:
+            return self.marginal(Y)
+        # See https://en.wikipedia.org/wiki/Multivariate_normal_distribution#Conditional_distributions
+        cov_y = matrix_block(self.covariance, Y, Y)
+        cov_x = matrix_block(self.covariance, X, X)
+        cov_yx = matrix_block(self.covariance, Y, X)
+        cov_xy = matrix_block(self.covariance, X, Y)
+        mean_y = self.mean[Y]
+        mean_x = self.mean[X]
+        mean = mean_y + cov_yx @ np.linalg.inv(cov_x) @ (x - mean_x)
+        covariance = cov_y - cov_yx @ np.linalg.inv(cov_x) @ cov_xy
+        return NormalDistribution(mean,covariance)
+
+    def regress(self, y, Xs):
+        """Compute the coefficients and intercept of regressing y on
+        predictors Xs, where the joint distribution is a multivariate
+        Gaussian
+        """
+        coefs = np.zeros(self.p)
+        # If predictors are given, perform regression, otherwise just fit
+        # intercept
+        if Xs:
+            cov_y_xs = matrix_block(self.covariance, [y], Xs)
+            cov_xs = matrix_block(self.covariance, Xs, Xs)
+            coefs[Xs] = cov_y_xs @ np.linalg.inv(cov_xs)
+        intercept = self.mean[y] - coefs @ self.mean
+        return (coefs, intercept)
+
+    def mse(self, y, Xs):
+        """Compute the population MSE of regressing y on predictors Xs, where
+        the joint distribution is a multivariate Gaussian
+        """
+        var_y = self.covariance[y,y]
+        # Compute regression coefficients when regressing on Xs
+        (coefs_xs, _) = self.regress(y, Xs)
+        # Covariance matrix
+        cov = self.covariance
+        # Computing the MSE
+        mse = var_y + coefs_xs @ cov @ coefs_xs.T - 2 * cov[y,:] @ coefs_xs.T
+        return mse
+
+    def equal(self, dist, tol=1e-7):
+        return np.allclose(self.mean, dist.mean) and np.allclose(self.covariance, dist.covariance)

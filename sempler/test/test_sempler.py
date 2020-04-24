@@ -38,7 +38,7 @@ import networkx as nx
 
 import sempler
 from sempler.utils import sampling_matrix
-from sempler.normal_distribution import NormalDistribution
+from sempler import NormalDistribution
 
 # Tested functions
 from sempler import dag_full, dag_avg_deg, LGANM
@@ -71,37 +71,37 @@ class SEM_Tests(unittest.TestCase):
         W = dag_avg_deg(p, p/4, 1, 1)
         sem = LGANM(W, (1,1))
         self.assertTrue((sem.variances == np.ones(p)).all())
-        self.assertTrue((sem.intercepts == np.zeros(p)).all())
+        self.assertTrue((sem.means == np.zeros(p)).all())
         self.assertTrue(np.sum((sem.W == 0).astype(float) + (sem.W == 1).astype(float)), p*p)
 
     def test_memory(self):
         # Test that all arguments are copied and not simply stored by
         # reference
         variances = np.array([1,2,3])
-        intercepts = np.array([3,4,5])
+        means = np.array([3,4,5])
         W = np.eye(3)
-        sem = LGANM(W, variances, intercepts)
+        sem = LGANM(W, variances, means)
         # Modify and compare
         variances[0] = 0
-        intercepts[2] = 1
+        means[2] = 1
         W[0,0] = 2
         self.assertFalse((W == sem.W).all())
         self.assertFalse((variances == sem.variances).all())
-        self.assertFalse((intercepts == sem.intercepts).all())
+        self.assertFalse((means == sem.means).all())
         
-    def test_intercepts(self):
-        # Test that intercepts are set correctly
+    def test_means(self):
+        # Test that means are set correctly
         p = 10
         W = dag_avg_deg(p, p/4, 1, 1)
-        intercepts = np.arange(p)
-        sem = LGANM(W, (0,1), intercepts = intercepts)
-        self.assertTrue((sem.intercepts == intercepts).all())
+        means = np.arange(p)
+        sem = LGANM(W, (0,1), means = means)
+        self.assertTrue((sem.means == means).all())
 
     def test_sampling_args(self):
         variances = np.array([1,2,3])
-        intercepts = np.array([3,4,5])
+        means = np.array([3,4,5])
         W = np.array([[0,1,1],[0,0,1],[0,0,0]])
-        sem = LGANM(W, variances, intercepts)
+        sem = LGANM(W, variances, means)
         self.assertEqual(np.ndarray, type(sem.sample(n=1)))
         self.assertEqual(NormalDistribution, type(sem.sample(n=1, population=True)))
         self.assertEqual(NormalDistribution, type(sem.sample(population=True)))
@@ -197,12 +197,12 @@ class SEM_Tests(unittest.TestCase):
                       [0, 0, 0]])
         n = round(1e6)
         variances = np.array([1,2,3])*0.1
-        intercepts = np.array([1,2,3])
-        sem = LGANM(W, variances, intercepts)
+        means = np.array([1,2,3])
+        sem = LGANM(W, variances, means)
         np.random.seed(42)
         # Test observational data
         # Build truth
-        noise = np.random.normal(intercepts, variances**0.5, size=(n,3))
+        noise = np.random.normal(means, variances**0.5, size=(n,3))
         truth = np.zeros_like(noise)
         truth[:,0] = noise[:,0]
         truth[:,1] = truth[:,0]*W[0,1] + noise[:,1]
@@ -214,16 +214,16 @@ class SEM_Tests(unittest.TestCase):
         true_vars[0] = variances[0]
         true_vars[1] = W[0,1]**2 * variances[0] + variances[1]
         true_vars[2] = (W[0,1]*W[1,2] + W[0,2])**2 * variances[0] + W[1,2]**2 * variances[1] + variances[2]
-        true_means[0] = intercepts[0]
-        true_means[1] = W[0,1] * intercepts[0] + intercepts[1]
-        true_means[2] = (W[0,1] * W[1,2] + W[0,2]) * intercepts[0] + W[1,2] * intercepts[1] + intercepts[2]
+        true_means[0] = means[0]
+        true_means[1] = W[0,1] * means[0] + means[1]
+        true_means[2] = (W[0,1] * W[1,2] + W[0,2]) * means[0] + W[1,2] * means[1] + means[2]
         self.assertTrue(np.allclose(true_vars, np.var(samples, axis=0), atol=1e-2))
         self.assertTrue(np.allclose(true_means, np.mean(samples, axis=0), atol=1e-2))
         
         # Test under intervention on X1 <- N(0,0.1)
         variances = np.array([1., 1., 3.])*0.1
-        intercepts = np.array([1., 0., 3.])
-        noise = np.random.normal(intercepts, variances**0.5, size=(n,3))
+        means = np.array([1., 0., 3.])
+        noise = np.random.normal(means, variances**0.5, size=(n,3))
         truth[:,0] = noise[:,0]
         truth[:,1] = noise[:,1]
         truth[:,2] = truth[:,0]*W[0,2] + truth[:,1]*W[1,2] + noise[:,2]
@@ -234,16 +234,16 @@ class SEM_Tests(unittest.TestCase):
         true_vars[0] = variances[0]
         true_vars[1] = variances[1]
         true_vars[2] = W[0,2]**2 * variances[0] + W[1,2]**2 * variances[1] + variances[2]
-        true_means[0] = intercepts[0]
-        true_means[1] = intercepts[1]
-        true_means[2] = W[0,2] * intercepts[0] + W[1,2] * intercepts[1] + intercepts[2]
+        true_means[0] = means[0]
+        true_means[1] = means[1]
+        true_means[2] = W[0,2] * means[0] + W[1,2] * means[1] + means[2]
         self.assertTrue(np.allclose(true_vars, np.var(samples, axis=0), atol=1e-2))
         self.assertTrue(np.allclose(true_means, np.mean(samples, axis=0), atol=1e-2))
         
         # Test under intervention on do(X0 = 0)
         variances = np.array([0., 2., 3.])*0.1
-        intercepts = np.array([0., 2., 3.])
-        noise = np.random.normal(intercepts, variances**0.5, size=(n,3))
+        means = np.array([0., 2., 3.])
+        noise = np.random.normal(means, variances**0.5, size=(n,3))
         truth[:,0] = noise[:,0]
         truth[:,1] = truth[:,0]*W[0,1] + noise[:,1]
         truth[:,2] = truth[:,0]*W[0,2] + truth[:,1]*W[1,2] + noise[:,2]
@@ -254,9 +254,9 @@ class SEM_Tests(unittest.TestCase):
         true_vars[0] = variances[0]
         true_vars[1] = W[0,1]**2 * variances[0] + variances[1]
         true_vars[2] = (W[0,1]*W[1,2] + W[0,2])**2 * variances[0] + W[1,2]**2 * variances[1] + variances[2]
-        true_means[0] = intercepts[0]
-        true_means[1] = W[0,1] * intercepts[0] + intercepts[1]
-        true_means[2] = (W[0,1] * W[1,2] + W[0,2]) * intercepts[0] + W[1,2] * intercepts[1] + intercepts[2]
+        true_means[0] = means[0]
+        true_means[1] = W[0,1] * means[0] + means[1]
+        true_means[2] = (W[0,1] * W[1,2] + W[0,2]) * means[0] + W[1,2] * means[1] + means[2]
         self.assertTrue(np.allclose(true_vars, np.var(samples, axis=0), atol=1e-2))
         self.assertTrue(np.allclose(true_means, np.mean(samples, axis=0), atol=1e-2))
 

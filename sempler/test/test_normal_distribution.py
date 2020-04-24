@@ -29,7 +29,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 #---------------------------------------------------------------------
-# Unit testing for module normal_distribution.py
+# Unit testing for the NormalDistribution class
 
 import unittest
 import numpy as np
@@ -39,7 +39,7 @@ import sempler
 from sempler.utils import sampling_matrix, all_but
 
 # Tested functions
-from sempler.normal_distribution import NormalDistribution
+from sempler import NormalDistribution
 
 class NormalDistributionTests(unittest.TestCase):
     def test_initialization(self):
