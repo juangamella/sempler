@@ -9,7 +9,7 @@ setup(
     scripts=[],
     url='http://pypi.python.org/pypi/sempler/',
     license='LICENSE.txt',
-    description='Sample from arbitrary structural equation models (SEMs) aka. SCMs',
+    description='Sample from general structural causal models (SCMs)',
     long_description=open('README.txt').read(),
     install_requires=[],
 )
