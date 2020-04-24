@@ -1,8 +1,13 @@
 
-SUITE = tests_*
+SUITE = all
 
 test:
-	python -m unittest tests/$(SUITE) -v
+ifeq ($(SUITE),all)
+	python -m unittest discover sempler.test
+else
+	python -m unittest sempler.test.$(SUITE)
+endif
 
+tests: test
 
-.PHONY: test
+.PHONY: test, tests

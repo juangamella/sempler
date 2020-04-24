@@ -34,7 +34,7 @@
 import unittest
 import numpy as np
 
-from .context import sempler
+import sempler
 
 from sempler.utils import sampling_matrix, all_but
 

@@ -35,12 +35,13 @@ import unittest
 
 import numpy as np
 import networkx as nx
-from .context import sempler
+
+import sempler
 from sempler.utils import sampling_matrix
 from sempler.normal_distribution import NormalDistribution
 
 # Tested functions
-from sempler.sampling import dag_full, dag_avg_deg, LGSEM
+from sempler import dag_full, dag_avg_deg, LGANM
 
 # Tests for the DAG generation
 class DAG_Tests(unittest.TestCase):
@@ -65,10 +66,10 @@ class DAG_Tests(unittest.TestCase):
 # Tests for the SEM generation and sampling
 class SEM_Tests(unittest.TestCase):
     def test_basic(self):
-        # Test the initialization of an LGSEM object
+        # Test the initialization of an LGANM object
         p = 10
         W = dag_avg_deg(p, p/4, 1, 1)
-        sem = LGSEM(W, (1,1))
+        sem = LGANM(W, (1,1))
         self.assertTrue((sem.variances == np.ones(p)).all())
         self.assertTrue((sem.intercepts == np.zeros(p)).all())
         self.assertTrue(np.sum((sem.W == 0).astype(float) + (sem.W == 1).astype(float)), p*p)
@@ -79,7 +80,7 @@ class SEM_Tests(unittest.TestCase):
         variances = np.array([1,2,3])
         intercepts = np.array([3,4,5])
         W = np.eye(3)
-        sem = LGSEM(W, variances, intercepts)
+        sem = LGANM(W, variances, intercepts)
         # Modify and compare
         variances[0] = 0
         intercepts[2] = 1
@@ -93,14 +94,14 @@ class SEM_Tests(unittest.TestCase):
         p = 10
         W = dag_avg_deg(p, p/4, 1, 1)
         intercepts = np.arange(p)
-        sem = LGSEM(W, (0,1), intercepts = intercepts)
+        sem = LGANM(W, (0,1), intercepts = intercepts)
         self.assertTrue((sem.intercepts == intercepts).all())
 
     def test_sampling_args(self):
         variances = np.array([1,2,3])
         intercepts = np.array([3,4,5])
         W = np.array([[0,1,1],[0,0,1],[0,0,0]])
-        sem = LGSEM(W, variances, intercepts)
+        sem = LGANM(W, variances, intercepts)
         self.assertEqual(np.ndarray, type(sem.sample(n=1)))
         self.assertEqual(NormalDistribution, type(sem.sample(n=1, population=True)))
         self.assertEqual(NormalDistribution, type(sem.sample(population=True)))
@@ -111,7 +112,7 @@ class SEM_Tests(unittest.TestCase):
         p = 1
         n = round(1e6)
         W = dag_full(p)
-        sem = LGSEM(W, (1,1))
+        sem = LGANM(W, (1,1))
         # Observational data
         truth = np.random.normal(0,1,size=(n,1))
         samples = sem.sample(n)
@@ -132,7 +133,7 @@ class SEM_Tests(unittest.TestCase):
         p = 4
         n = round(1e6)
         W = dag_full(p)
-        sem = LGSEM(W, (0.16,0.16))
+        sem = LGANM(W, (0.16,0.16))
         np.random.seed(42)
         noise = np.random.normal([0,0,0,0],[.4, .4, .4, .4], size=(n,4))
         truth = np.zeros((n,p))
@@ -155,7 +156,7 @@ class SEM_Tests(unittest.TestCase):
                       [0, 0, 0, 0, 1, 1],
                       [0, 0, 0, 0, 0, 1],
                       [0, 0, 0, 0, 0, 0]])
-        sem = LGSEM(W, (0.16,0.16))
+        sem = LGANM(W, (0.16,0.16))
 
         # Test observational data
         M = np.array([[1, 0, 0, 0, 0, 0],
@@ -198,7 +199,7 @@ class SEM_Tests(unittest.TestCase):
         n = round(1e6)
         variances = np.array([1,2,3])*0.1
         intercepts = np.array([1,2,3])
-        sem = LGSEM(W, variances, intercepts)
+        sem = LGANM(W, variances, intercepts)
         np.random.seed(42)
         # Test observational data
         # Build truth
@@ -268,7 +269,7 @@ class SEM_Tests(unittest.TestCase):
                       [0,0,0,0]])
         # Build SEM with unit weights and standard normal noise
         # variables
-        sem = LGSEM(W, (1,1))
+        sem = LGANM(W, (1,1))
         # Observational Distribution
         distribution = sem.sample(population=True)
         true_cov = np.array([[1,0,1,1],
