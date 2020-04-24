@@ -1,5 +1,11 @@
 # Sempler: Sampling from general structural causal models (SCMs)
 
+### Installation
+You can clone this repo or install using pip:
+```
+pip install sempler
+```
+
 Disclaimer: This package is still at its infancy and the API could be subject to change.
 Use at your own risk, but also know that feedback is very welcome :)
 
