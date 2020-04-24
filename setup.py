@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='sempler',
-    version='0.1.0',
+    version='0.1.1',
     author='Juan L Gamella',
     author_email='juangamella@gmail.com',
     packages=['sempler', 'sempler.test'],
@@ -10,5 +10,6 @@ setup(
     url='http://pypi.python.org/pypi/sempler/',
     license='LICENSE.txt',
     description='Sample from general structural causal models (SCMs)',
-    long_description=open('README.txt').read()
+    long_description=open('README.txt').read(),
+    install_requires=['numpy', 'networkx', 'matplotlib']
 )
