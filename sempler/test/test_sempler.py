@@ -119,11 +119,11 @@ class SEM_Tests(unittest.TestCase):
         self.assertTrue(same_normal(truth, samples, atol=1e-1))
         # Under do intervention
         truth = np.ones((n,1))
-        samples = sem.sample(n, do_interventions = np.array([[0, 1]]))
+        samples = sem.sample(n, do_interventions = {0: 1})
         self.assertTrue((truth == samples).all())
         # Under noise intervention
         truth = np.random.normal(1,2,size=(n,1))
-        samples = sem.sample(n, noise_interventions = np.array([[0, 1, 4]]))
+        samples = sem.sample(n, do_interventions = {0: (1, 4)})
         self.assertTrue(same_normal(truth, samples, atol=1e-1))
 
     def test_sampling_2(self):
@@ -173,12 +173,11 @@ class SEM_Tests(unittest.TestCase):
         # Test under do-interventions on X1
         noise = np.random.normal([2.1,0,0,0,0,0], [0,.4, .4, .4, .4, .4], size=(n,p))
         truth = noise @ M.T
-        samples = sem.sample(n, do_interventions = np.array([[0,2.1]]))
+        samples = sem.sample(n, do_interventions = {0: 2.1})
         self.assertTrue(same_normal(truth, samples))
         
         # Test under do-intervention on X1 and noise interventions X2 and X5
-        do_int = np.array([[0,2]])
-        noise_int = np.array([[1, 2, 0.25], [4, 1, 0.25]])
+        do_int = {0: 2, 1: (2, 0.25), 4: (1, 0.25)}
         noise = np.random.normal([2,2,0,0,1,0], [0,.5,.4,.4,.5,.4], size=(n,p))
         M = np.array([[1, 0, 0, 0, 0, 0],
                       [0, 1, 0, 0, 0, 0],
@@ -187,7 +186,7 @@ class SEM_Tests(unittest.TestCase):
                       [0, 0, 0, 0, 1, 0],
                       [1, 1, 1, 1, 1, 1]])
         truth = noise @ M.T
-        samples = sem.sample(n, do_interventions=do_int, noise_interventions = noise_int)
+        samples = sem.sample(n, do_interventions=do_int)
         self.assertTrue(same_normal(truth, samples))
 
     def test_interventions_2(self):
@@ -228,7 +227,7 @@ class SEM_Tests(unittest.TestCase):
         truth[:,0] = noise[:,0]
         truth[:,1] = noise[:,1]
         truth[:,2] = truth[:,0]*W[0,2] + truth[:,1]*W[1,2] + noise[:,2]
-        samples = sem.sample(n, noise_interventions = np.array([[1,0,0.1]]))
+        samples = sem.sample(n, do_interventions = {1: (0,0.1)})
         self.assertTrue(same_normal(truth, samples))
         # Test that variances/means are as expected
         true_vars, true_means = np.zeros(3), np.zeros(3)
@@ -248,7 +247,7 @@ class SEM_Tests(unittest.TestCase):
         truth[:,0] = noise[:,0]
         truth[:,1] = truth[:,0]*W[0,1] + noise[:,1]
         truth[:,2] = truth[:,0]*W[0,2] + truth[:,1]*W[1,2] + noise[:,2]
-        samples = sem.sample(n, do_interventions = np.array([[0,0]]))
+        samples = sem.sample(n, do_interventions = {0: 0})
         self.assertTrue(same_normal(truth, samples))
         # Test that variances/means are as expected
         true_vars, true_means = np.zeros(3), np.zeros(3)
@@ -279,7 +278,7 @@ class SEM_Tests(unittest.TestCase):
         self.assertTrue((distribution.mean==np.zeros(4)).all())
         self.assertTrue((distribution.covariance==true_cov).all())
         # Do intervention on X1 <- 0
-        distribution = sem.sample(population=True, do_interventions = np.array([[0,1]]))
+        distribution = sem.sample(population=True, do_interventions = {0: 1})
         true_cov = np.array([[0,0,0,0],
                              [0,1,1,1],
                              [0,1,2,2],
@@ -287,8 +286,8 @@ class SEM_Tests(unittest.TestCase):
         self.assertTrue((distribution.mean==np.array([1,0,1,1])).all())
         self.assertTrue((distribution.covariance==true_cov).all())
         # Noise interventions on X1 <- N(0,2), X2 <- N(1,2)
-        interventions = np.array([[0,0,2], [1,1,2]])
-        distribution = sem.sample(population=True, noise_interventions=interventions)
+        interventions = {0: (0,2), 1: (1,2)}
+        distribution = sem.sample(population=True, do_interventions=interventions)
         true_cov = np.array([[2,0,2,2],
                              [0,2,2,2],
                              [2,2,5,5],

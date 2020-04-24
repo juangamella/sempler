@@ -107,7 +107,7 @@ class LGANM:
         else:
             self.intercepts = intercepts.copy()
     
-    def sample(self, n=round(1e5), population=False, do_interventions=None, noise_interventions=None, shift_interventions=None, debug=False):
+    def sample(self, n=round(1e5), population=False, do_interventions=None, shift_interventions=None, debug=False):
         """
         If population is set to False:
           - Generate n samples from a given Linear Gaussian SEM, under the given
@@ -122,25 +122,21 @@ class LGANM:
         variances = self.variances.copy()
         intercepts = self.intercepts.copy()
 
-        # Perform do interventions
-        if do_interventions is not None:
-            targets = do_interventions[:,0].astype(int)
-            variances[targets] = 0
-            intercepts[targets] = do_interventions[:,1]
-            W[:,targets] = 0
-            
-        # Perform noise interventions
-        if noise_interventions is not None:
-            targets = noise_interventions[:,0].astype(int)
-            intercepts[targets] = noise_interventions[:,1]
-            variances[targets] = noise_interventions[:,2]
-            W[:,targets] = 0
-
         # Perform shift interventions
         if shift_interventions is not None:
+            shift_interventions = parse_interventions(shift_interventions)
             targets = shift_interventions[:,0].astype(int)
             intercepts[targets] += shift_interventions[:,1]
             variances[targets] += shift_interventions[:,2]
+        
+        # Perform do interventions. Note that they take preference
+        # i.e. "override" shift interventions
+        if do_interventions is not None:
+            do_interventions = parse_interventions(do_interventions)
+            targets = do_interventions[:,0].astype(int)
+            intercepts[targets] = do_interventions[:,1]
+            variances[targets] = do_interventions[:,2]
+            W[:,targets] = 0
             
         # Sampling by building the joint distribution
         A = np.linalg.inv(np.eye(self.p) - W.T)
@@ -151,6 +147,20 @@ class LGANM:
             return distribution.sample(n)
         else:
             return distribution
+
+def parse_interventions(interventions_dict):
+    """Transform the interventions from a dictionary to an array"""
+    interventions = []
+    for (target, params) in interventions_dict.items():
+        # Mean and variance provided
+        if type(params) == tuple and len(params) == 2:
+            interventions.append([target, params[0], params[1]])
+        # Only mean provided, assume we're setting the variable to a deterministic value
+        elif type(params) in [float, int]:
+            interventions.append([target, params, 0])
+        else:
+            raise ValueError("Wrongly specified intervention")
+    return np.array(interventions)
 
 #---------------------------------------------------------------------
 # DAG Generating Functions
