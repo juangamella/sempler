@@ -107,7 +107,7 @@ class LGANM:
         else:
             self.intercepts = intercepts.copy()
     
-    def sample(self, n=round(1e5), population=False, do_interventions=None, noise_interventions=None, debug=False):
+    def sample(self, n=round(1e5), population=False, do_interventions=None, noise_interventions=None, shift_interventions=None, debug=False):
         """
         If population is set to False:
           - Generate n samples from a given Linear Gaussian SEM, under the given
@@ -135,6 +135,12 @@ class LGANM:
             intercepts[targets] = noise_interventions[:,1]
             variances[targets] = noise_interventions[:,2]
             W[:,targets] = 0
+
+        # Perform shift interventions
+        if shift_interventions is not None:
+            targets = shift_interventions[:,0].astype(int)
+            intercepts[targets] += shift_interventions[:,1]
+            variances[targets] += shift_interventions[:,2]
             
         # Sampling by building the joint distribution
         A = np.linalg.inv(np.eye(self.p) - W.T)
