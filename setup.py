@@ -10,6 +10,5 @@ setup(
     url='http://pypi.python.org/pypi/sempler/',
     license='LICENSE.txt',
     description='Sample from general structural causal models (SCMs)',
-    long_description=open('README.txt').read(),
-    install_requires=[],
+    long_description=open('README.txt').read()
 )
