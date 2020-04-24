@@ -294,6 +294,64 @@ class SEM_Tests(unittest.TestCase):
                              [2,2,5,6]])
         self.assertTrue((distribution.mean==np.array([0,1,1,1])).all())
         self.assertTrue((distribution.covariance==true_cov).all())
+
+    def test_shift_interventions_1(self):
+        # Test sampling and interventions on a custom DAG, comparing
+        # with results obtained via the path method
+        np.random.seed(42)
+        p = 6
+        n = round(1e6)
+        W = np.array([[0, 1, 1, 0, 0, 0],
+                      [0, 0, 0, 0, 1, 1],
+                      [0, 0, 0, 1, 0, 0],
+                      [0, 0, 0, 0, 1, 1],
+                      [0, 0, 0, 0, 0, 1],
+                      [0, 0, 0, 0, 0, 0]])
+        sem = LGANM(W, (0.16,0.16))
+
+        # Test observational data
+        M = np.array([[1, 0, 0, 0, 0, 0],
+                      [1, 1, 0, 0, 0, 0],
+                      [1, 0, 1, 0, 0, 0],
+                      [1, 0, 1, 1, 0, 0],
+                      [2, 1, 1, 1, 1, 0],
+                      [4, 2, 2, 2, 1, 1]])
+        noise = np.random.normal(np.zeros(p), np.ones(p)*0.4, size=(n,p))
+        truth = noise @ M.T
+        samples = sem.sample(n)
+        self.assertTrue(same_normal(truth, samples))
+
+        # Test shift intervention on X4
+        noise = np.random.normal([0,0,0,0,0,0], [.4, .4, .4, .4, .6, .4], size=(n,p))
+        truth = noise @ M.T
+        samples = sem.sample(n, shift_interventions = {4: (0,0.2)})
+        self.assertTrue(same_normal(truth, samples))
+
+        # Test noiseless shift intervention on X2
+        noise = np.random.normal([0,0,2,0,0,0], [.4, .4, .4, .4, .4, .4], size=(n,p))
+        truth = noise @ M.T
+        samples = sem.sample(n, shift_interventions = {2: 2})
+        self.assertTrue(same_normal(truth, samples))
+        
+        # Test that do-interventions on X0 override shift interventions on X0
+        noise = np.random.normal([2.1,0,0,0,0,0], [0,.4, .4, .4, .4, .4], size=(n,p))
+        truth = noise @ M.T
+        samples = sem.sample(n, do_interventions = {0: 2.1}, shift_interventions = {0: (1,2)})
+        self.assertTrue(same_normal(truth, samples))
+        
+        # Test under shift-intervention on X0 and do interventions X1 and X4
+        shift_int = {0: (0,0.2)}
+        do_int = {1: (2, 0.25), 4: (1, 0.25)}
+        noise = np.random.normal([0,2,0,0,1,0], [0.6,.5,.4,.4,.5,.4], size=(n,p))
+        M = np.array([[1, 0, 0, 0, 0, 0],
+                      [0, 1, 0, 0, 0, 0],
+                      [1, 0, 1, 0, 0, 0],
+                      [1, 0, 1, 1, 0, 0],
+                      [0, 0, 0, 0, 1, 0],
+                      [1, 1, 1, 1, 1, 1]])
+        truth = noise @ M.T
+        samples = sem.sample(n, do_interventions=do_int, shift_interventions=shift_int)
+        self.assertTrue(same_normal(truth, samples))
         
 def same_normal(sample_a, sample_b, atol=1e-2, debug=False):
     """
