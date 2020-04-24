@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='sempler',
-    version='0.0.1',
+    version='0.1.0',
     author='Juan L Gamella',
     author_email='juangamella@gmail.com',
     packages=['sempler', 'sempler.test'],
