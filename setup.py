@@ -11,5 +11,5 @@ setup(
     license='LICENSE.txt',
     description='Sample from general structural causal models (SCMs)',
     long_description=open('README.txt').read(),
-    install_requires=[],
+    install_requires=['numpy', 'networkx', 'matplotlib']
 )
