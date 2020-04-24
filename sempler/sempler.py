@@ -53,13 +53,24 @@ class ANM:
         self.assignments = [functions.null if fun is None else deepcopy(fun) for fun in assignments]
         self.noise_distributions = deepcopy(noise_distributions)
             
-    def sample(self, n, do_interventions = {}, shift_interventions = {}, random_state = None, debug = False):
+    def sample(self, n, do_interventions = {}, shift_interventions = {}, random_state = None):
+        """Generates n samples from the ANM, under the given do or shift interventions.
+           Parameters:
+             - n: the number of samples
+             - do_interventions: a dictionary containing the
+               distribution functions (see sempler.functions) from
+               which to generate samples for each intervened variable
+             - shift_interventions: a dictionary containing the
+               distribution functions (see sempler.functions) from
+               which to generate the noise which is added to each
+               intervened variable
+             - random_state: (int) seed for the random state generator
+        """
         # Set random state (if requested)
         np.random.seed(random_state) if random_state is not None else None
         # Sample according to a topological ordering of the connectivity matrix
         X = np.zeros((n, self.p))
         for i in self.ordering:
-            print(i, X) if debug else None
             if i in do_interventions:
                 X[:,i] = do_interventions[i](n)
             else:
@@ -77,18 +88,15 @@ class LGANM:
     (i.e. Gaussian Bayesian Network).
     """
     
-    def __init__(self, W, variances, intercepts = None, debug=False):
-        """Generate a linear gaussian SEM, given
-        - W: weight matrix representing a DAG
-        - variances: either a vector of variances or a tuple
+    def __init__(self, W, variances, intercepts = None):
+        """
+        Parameters
+        - W (np.array): weighted connectivity matrix representing a DAG
+        - variances (np.array or tuple): either a vector of variances or a tuple
           indicating range for uniform sampling
-        - intercepts: either a vector of intercepts, a tuple
+        - intercepts (np.array, tuple or None): either a vector of intercepts, a tuple
           indicating the range for uniform sampling or None (zero
           intercepts)
-        - graph_gen: the function used to generate the graph, by default
-          "generate_dag_avg_dev"
-        return a "SEM" object
-
         """
         self.W = W.copy()
         self.p = len(W)
@@ -107,10 +115,10 @@ class LGANM:
         else:
             self.intercepts = intercepts.copy()
     
-    def sample(self, n=round(1e5), population=False, do_interventions=None, shift_interventions=None, debug=False):
+    def sample(self, n=round(1e5), population=False, do_interventions=None, shift_interventions=None):
         """
         If population is set to False:
-          - Generate n samples from a given Linear Gaussian SEM, under the given
+          - Generate n samples from a given Linear Gaussian SCM, under the given
             interventions (by default samples observational data)
         if set to True:
           - Return the "symbolic" joint distribution under the given
@@ -149,7 +157,7 @@ class LGANM:
             return distribution
 
 def parse_interventions(interventions_dict):
-    """Transform the interventions from a dictionary to an array"""
+    """Used internally by LGANM.sample. Transform the interventions from a dictionary to an array"""
     interventions = []
     for (target, params) in interventions_dict.items():
         # Mean and variance provided
