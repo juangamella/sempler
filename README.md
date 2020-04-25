@@ -1,4 +1,4 @@
-# Sempler: Sampling from general structural causal models (SCMs)
+# Sempler: Sampling from general structural equation models (SEMs)
 
 ### Installation
 You can clone this repo or install using pip:
