@@ -34,7 +34,7 @@ distributions.
 ANMs are defined by providing the following arguments:
 
 1. ``A`` (``np.array``): a connectivity matrix, representing the
-   underlying DAG
+   underlying DAG, , where ``A[i,j]=1`` denotes a directed edge from i to j.
 
 2. ``assignments`` (``list``): the functional assignments, i.e. a list
    with a function per variable in the SCM, which takes as many
@@ -109,7 +109,7 @@ noise (i.e. a Gaussian Bayesian networks).
 LGANMs are defined by providing the following arguments:
 
 -  ``W`` (``np.array``): weighted connectivity matrix representing the
-   DAG
+   DAG, where ``W[i,j]=w`` denotes a directed edge from i to j with weight w.
 -  ``variances`` (``np.array`` or ``tuple``): the variances of the noise
    terms. Can be either a vector of variances or a tuple indicating a
    range for their uniform sampling.
