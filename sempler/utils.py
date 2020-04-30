@@ -119,10 +119,7 @@ def topological_ordering(A):
 
 def plot_graph(W, block=False):
     G = nx.from_numpy_matrix(W, create_using = nx.DiGraph)
-    try:
-        pos = nx.drawing.layout.planar_layout(G, scale=0.5)
-    except nx.exception.NetworkXException:
-        pos = nx.drawing.layout.shell_layout(G, scale=0.5)
+    pos = nx.drawing.layout.shell_layout(G, scale=0.5)
     edge_labels = nx.get_edge_attributes(G,'weight')
     p = len(W)
     node_labels = dict(zip(np.arange(p), map(lambda i: "$X_{%d}$" %i, range(p))))
