@@ -34,7 +34,7 @@ distributions.
 ANMs are defined by providing the following arguments:
 
 1. ``A`` (``np.array``): a connectivity matrix, representing the
-   underlying DAG
+   underlying DAG, , where ``A[i,j]=1`` denotes a directed edge from i to j.
 
 2. ``assignments`` (``list``): the functional assignments, i.e. a list
    with a function per variable in the SCM, which takes as many
