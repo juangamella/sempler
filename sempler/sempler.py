@@ -131,7 +131,7 @@ class LGANM:
         means = self.means.copy()
 
         # Perform shift interventions
-        if shift_interventions is not None:
+        if shift_interventions:
             shift_interventions = parse_interventions(shift_interventions)
             targets = shift_interventions[:,0].astype(int)
             means[targets] += shift_interventions[:,1]
@@ -139,7 +139,7 @@ class LGANM:
         
         # Perform do interventions. Note that they take preference
         # i.e. "override" shift interventions
-        if do_interventions is not None:
+        if do_interventions:
             do_interventions = parse_interventions(do_interventions)
             targets = do_interventions[:,0].astype(int)
             means[targets] = do_interventions[:,1]
