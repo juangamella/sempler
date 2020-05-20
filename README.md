@@ -1,4 +1,4 @@
-# Sempler: Sampling from general structural equation models (SEMs)
+# Sempler: Sampling observational and interventional data from general structural equation models (SEMs)
 
 ### Installation
 You can clone this repo or install using pip:
