@@ -102,18 +102,22 @@ class LGANM:
         self.p = len(W)
 
         # Set variances
-        if isinstance(variances, tuple):
+        if isinstance(variances, tuple) and len(variances) == 2:
             self.variances = np.random.uniform(variances[0], variances[1], size=self.p)
-        else:
+        elif type(variances) == np.ndarray and len(variances) == self.p:
             self.variances = variances.copy()
+        else:
+            raise Exception("Wrong value for variances")
             
         # Set means
         if means is None:
             self.means = np.zeros(self.p)
-        elif isinstance(means, tuple):
+        elif isinstance(means, tuple) and len(means) == 2:
             self.means = np.random.uniform(means[0], means[1], size=self.p)
-        else:
+        elif type(means)==np.ndarray and len(means) == self.p:
             self.means = means.copy()
+        else:
+            raise Exception("Wrong value for means")
     
     def sample(self, n=100, population=False, do_interventions=None, shift_interventions=None):
         """
@@ -131,7 +135,7 @@ class LGANM:
         means = self.means.copy()
 
         # Perform shift interventions
-        if shift_interventions is not None:
+        if shift_interventions:
             shift_interventions = parse_interventions(shift_interventions)
             targets = shift_interventions[:,0].astype(int)
             means[targets] += shift_interventions[:,1]
@@ -139,7 +143,7 @@ class LGANM:
         
         # Perform do interventions. Note that they take preference
         # i.e. "override" shift interventions
-        if do_interventions is not None:
+        if do_interventions:
             do_interventions = parse_interventions(do_interventions)
             targets = do_interventions[:,0].astype(int)
             means[targets] = do_interventions[:,1]
@@ -264,7 +268,8 @@ class NormalDistribution():
         coefs = np.zeros(self.p)
         # If predictors are given, perform regression, otherwise just fit
         # intercept
-        if Xs:
+        Xs = np.atleast_1d(Xs)
+        if len(Xs) > 0:
             cov_y_xs = matrix_block(self.covariance, [y], Xs)
             cov_xs = matrix_block(self.covariance, Xs, Xs)
             coefs[Xs] = cov_y_xs @ np.linalg.inv(cov_xs)

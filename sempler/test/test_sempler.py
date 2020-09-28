@@ -74,6 +74,23 @@ class SEM_Tests(unittest.TestCase):
         self.assertTrue((sem.means == np.zeros(p)).all())
         self.assertTrue(np.sum((sem.W == 0).astype(float) + (sem.W == 1).astype(float)), p*p)
 
+    def test_basic_1(self):
+        # Test the initialization of an LGANM object
+        p = 5
+        W = dag_avg_deg(p, p/4, 1, 1)
+        sem = LGANM(W, (1,1), (0,0))
+        self.assertTrue((sem.variances == np.ones(p)).all())
+        self.assertTrue((sem.means == np.zeros(p)).all())
+        sem = LGANM(W, np.ones(p), np.zeros(p))
+        self.assertTrue((sem.variances == np.ones(p)).all())
+        self.assertTrue((sem.means == np.zeros(p)).all())
+        with self.assertRaises(Exception):
+            LGANM(W, (0,1,2,3,4), (0,0))
+        with self.assertRaises(Exception):
+            LGANM(W, (0,1), (0,0,0,0,0))
+        with self.assertRaises(Exception):
+            LGANM(W, (0,1,2,3), (0,0,0))
+
     def test_memory(self):
         # Test that all arguments are copied and not simply stored by
         # reference
@@ -103,6 +120,10 @@ class SEM_Tests(unittest.TestCase):
         W = np.array([[0,1,1],[0,0,1],[0,0,0]])
         sem = LGANM(W, variances, means)
         self.assertEqual(np.ndarray, type(sem.sample(n=1)))
+        self.assertEqual(np.ndarray, type(sem.sample(n=1, shift_interventions = {})))
+        self.assertEqual(np.ndarray, type(sem.sample(n=1, do_interventions = {})))
+        self.assertEqual(np.ndarray, type(sem.sample(n=1, shift_interventions = None)))
+        self.assertEqual(np.ndarray, type(sem.sample(n=1, do_interventions = None)))
         self.assertEqual(NormalDistribution, type(sem.sample(n=1, population=True)))
         self.assertEqual(NormalDistribution, type(sem.sample(population=True)))
         
@@ -115,7 +136,7 @@ class SEM_Tests(unittest.TestCase):
         sem = LGANM(W, (1,1))
         # Observational data
         truth = np.random.normal(0,1,size=(n,1))
-        samples = sem.sample(n)
+        samples = sem.sample(n, shift_interventions = {})
         self.assertTrue(same_normal(truth, samples, atol=1e-1))
         # Under do intervention
         truth = np.ones((n,1))
