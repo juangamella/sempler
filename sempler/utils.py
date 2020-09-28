@@ -132,7 +132,7 @@ def plot_graph(W, block=False):
               'width': 1.5,
               'arrowsize': 20,
               'arrowstyle': '->',
-              'min_target_margin': 1000,
+              'min_target_margin': 10,
               'labels': node_labels}
     nx.draw(G,pos, **params)
     fig.set_facecolor("white")

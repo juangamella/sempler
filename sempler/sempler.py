@@ -102,18 +102,22 @@ class LGANM:
         self.p = len(W)
 
         # Set variances
-        if isinstance(variances, tuple):
+        if isinstance(variances, tuple) and len(variances) == 2:
             self.variances = np.random.uniform(variances[0], variances[1], size=self.p)
-        else:
+        elif type(variances) == np.ndarray and len(variances) == self.p:
             self.variances = variances.copy()
+        else:
+            raise Exception("Wrong value for variances")
             
         # Set means
         if means is None:
             self.means = np.zeros(self.p)
-        elif isinstance(means, tuple):
+        elif isinstance(means, tuple) and len(means) == 2:
             self.means = np.random.uniform(means[0], means[1], size=self.p)
-        else:
+        elif type(means)==np.ndarray and len(means) == self.p:
             self.means = means.copy()
+        else:
+            raise Exception("Wrong value for means")
     
     def sample(self, n=100, population=False, do_interventions=None, shift_interventions=None):
         """
