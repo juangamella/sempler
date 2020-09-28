@@ -268,7 +268,8 @@ class NormalDistribution():
         coefs = np.zeros(self.p)
         # If predictors are given, perform regression, otherwise just fit
         # intercept
-        if Xs:
+        Xs = np.atleast_1d(Xs)
+        if len(Xs) > 0:
             cov_y_xs = matrix_block(self.covariance, [y], Xs)
             cov_xs = matrix_block(self.covariance, Xs, Xs)
             coefs[Xs] = cov_y_xs @ np.linalg.inv(cov_xs)

@@ -110,6 +110,15 @@ class NormalDistributionTests(unittest.TestCase):
         self.assertTrue((marginal.mean == np.array([1, 3])).all())
         self.assertTrue((marginal.covariance == np.array([[11, 13], [31, 33]])).all())
 
+    def test_regression_arguments(self):
+        p = 5
+        covariance = np.eye(p)
+        mean = np.random.uniform(size=p)
+        joint = NormalDistribution(mean, covariance)
+        # Test can call with regressors as np.array (see issue #3)
+        joint.regress(0, [1,2])
+        joint.regress(0, np.array([1,2]))
+        
     def test_conditioning_1(self):
         # Test conditioning
         covariance = np.eye(3)
@@ -223,7 +232,7 @@ class NormalDistributionTests(unittest.TestCase):
         # the MSE
         joint.mean = np.random.uniform(size=p)
         self.run_mse_tests(joint, tests)
-
+        
     def regression_properties_test(self, W, parents, markov_blankets):
         # Test basic properties of the regression coefficients.
         # PRE: Assumed [1..p] is a valid causal ordering
