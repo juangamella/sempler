@@ -37,10 +37,7 @@ def matrix_block(M, rows, cols):
     """
     Select a block of a matrix given by the row and column indices
     """
-    (n,m) = M.shape
-    idx_rows = np.tile(np.array([rows]).T,len(cols)).flatten()
-    idx_cols = np.tile(cols, (len(rows),1)).flatten()
-    return M[idx_rows, idx_cols].reshape(len(rows), len(cols))
+    return M[rows,:][:,cols]
 
 def sampling_matrix(W):
     """Given the weighted adjacency matrix of a DAG, return
