@@ -1,4 +1,9 @@
-v0.1.?, 2020-05-14 -- Can pass empty dict as {shift,do}_interventions parameter and will have the same effect as not passing anything or passing None
+v0.1.?, 2020-05-14
+-- Can pass empty dict as {shift,do}_interventions parameter and will have the same effect as not passing anything or passing None
+-- Refactored matrix_block function
+-- Fixed license and project URL in setup.py
+-- Set a markdown readme
+-- Updated imports in setup.py, made dependency requirements more specific
 v0.1.3, 2020-09-28 -- Fixed issues 1,2,3. Arrows now appear when plotting acyclic graphs.
 v0.1.2, 2020-04-24 -- Updated READMEs, specified networkx dependency to be above 2.2
 v0.1.1, 2020-04-24 -- Added missing dependencies to setup.py
