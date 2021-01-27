@@ -40,41 +40,68 @@ from sempler.normal_distribution import NormalDistribution
 #---------------------------------------------------------------------
 # LGANM class
 class LGANM:
-    """Represents a linear model with Gaussian additive noise
-    (i.e. Gaussian Bayesian Network).
+    """Represents a linear model with Gaussian additive noise.
 
     Parameters
     ----------
-    W : np.array:
-        connectivity (weights) matrix representing a DAG.
-    variances : np.array
-        the variances of the noise terms.
-    means : np.array
-        the means of the noise terms.
+    W : numpy.ndarray
+        Connectivity (weights) matrix representing a DAG.
+    variances : numpy.ndarray or tuple
+        The variances of the noise terms, or a tuple representing
+        the lower/upper bounds to sample them from a uniform
+        distribution.
+    means : numpy.ndarray or tuple
+        The means of the noise terms, or a tuple representing
+        the lower/upper bounds to sample them from a uniform
+        distribution.
+
+    Raises
+    ------
+    ValueError
+        If the given adjacency does not correspond to a DAG.
+
+    Examples
+    --------
+
+    Constructing a LGANM.
+
+    >>> import sempler
+    >>> import numpy as np
+
+    (1) Define the connectivity matrix:
+    
+    >>> A = np.array([[0, 0, 0, 0.1, 0],
+    ...               [0, 0, 2.1, 0, 0],
+    ...               [0, 0, 0, 3.2, 0],
+    ...               [0, 0, 0, 0, 5.0],
+    ...               [0, 0, 0,  0, 0 ]])
+
+    (2a) With explicit means and variances:
+
+    >>> means = np.array([0,1,2,3,4])
+    >>> variances = np.array([1,1,1,1,1])
+    >>> lganm = sempler.LGANM(W, means, variances)
+
+    (2b) With random means and variances:
+    
+    >>> lganm = sempler.LGANM(W, (0,1), (0,1))
+
+    Attributes
+    ----------
+    W : numpy.ndarray
+        Connectivity (weights) matrix representing a DAG.
+    variances : numpy.ndarray
+        The variances of the noise terms.
+    means : numpy.ndarray
+        The means of the noise terms.
+    p : int
+        The number of variables (size) of the SCM.
 
     """
     
-    def __init__(self, W, variances, means):
-        """
-        Create a linear Gaussian SCM.
-        
-        Parameters
-        ----------
-        W : np.array:
-            connectivity (weights) matrix representing a DAG.
-        variances : np.array or tuple
-            the variances of the noise terms, or a tuple representing
-            the lower/upper bounds to sample them from a uniform
-            distribution.
-        means : np.array or tuple
-            the means of the noise terms, or a tuple representing
-            the lower/upper bounds to sample them from a uniform
-            distribution.
-
-        Returns
-        -------
-
-        """
+    def __init__(self, W, means, variances):
+        if not utils.is_dag(W):
+            raise ValueError("The given graph is not a DAG")
         self.W = W.copy()
         self.p = len(W)
 
