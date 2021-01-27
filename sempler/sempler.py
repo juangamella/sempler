@@ -28,24 +28,57 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+"""
+Main module containing the SCM classes (sempler.ANM and
+sempler.LGANM), the sempler.NormalDistribution class and additional
+functions to generate random graphs.
+"""
+
 import numpy as np
 from copy import deepcopy
-from sempler import utils, functions
-from sempler.utils import matrix_block
+import sempler.utils as utils
+import sempler.functions as functions
 
 #---------------------------------------------------------------------
 # ANM class
 class ANM:
     """
-    Represents an general (acyclic) additive noise model.
+    Class to represent a general (acyclic) additive noise model.
+    
+    Attributes
+    ----------
+    A : np.array
+        The p x p adjacency matrix specifying the functional
+        dependencies-
+    p : int
+        the number of variables.
+    assignments : list of functions
+        the assignment functions of the variables.
+    noise_distributions : list of functions
+        a list of functions representing the noise term distribution
+        of each variable.
+
     """
     def __init__(self, A, assignments, noise_distributions):
-        """Parameters:
-          - A: pxp onnectivity matrix (A_ij = 1 if i appears in the assignment of j)
-          - functions: list of p functions representing
-            the assignments of each variable
-          - noise_distributions: list of p functions that generate
-            samples of each variable's noise distribution
+        """Creates an instance of the ANM class, representing an SCM over p
+        observed variables.
+        
+        Parameters
+        ----------
+        A : np.array
+            The p x p adjacency matrix specifying the functional
+            dependencies, where A[i,j] != 0 if i appears in the
+            assignment of j (i.e. i -> j).
+        functions : list of functions or NoneType
+            a list of p functions representing the functional
+            assignments of each variable. Each function must take as
+            many arguments as specified by the adjacency matrix A, or
+            be None if the variable has no parents.
+        noise_distributions : list of functions
+            a list of p functions that generate samples of each
+            variable's noise distribution (see sempler.noise for
+            details).
+
         """
         self.ordering = utils.topological_ordering(A)
         self.p = len(A)
@@ -53,50 +86,100 @@ class ANM:
         self.assignments = [functions.null if fun is None else deepcopy(fun) for fun in assignments]
         self.noise_distributions = deepcopy(noise_distributions)
             
-    def sample(self, n, do_interventions = {}, shift_interventions = {}, random_state = None):
-        """Generates n samples from the ANM, under the given do or shift interventions.
-           Parameters:
-             - n: the number of samples
-             - do_interventions: a dictionary containing the
-               distribution functions (see sempler.functions) from
-               which to generate samples for each intervened variable
-             - shift_interventions: a dictionary containing the
-               distribution functions (see sempler.functions) from
-               which to generate the noise which is added to each
-               intervened variable
-             - random_state: (int) seed for the random state generator
+    def sample(self, n, do_interventions = {}, shift_interventions = {}, noise_interventions = {}, random_state = None):
+        """Generates n observations from the ANM, under the given do, shift or
+        noise interventions. If none are given, sample from the observational
+        distribution.
+        
+        Parameters
+        ----------
+        n : int
+            the size of the sample (i.e. number of observations).
+        do_interventions : dict, optional
+            a dictionary where keys correspond to the intervened
+            variables, and the values are the distribution functions
+            (see sempler.noise) to generate samples for each
+            intervened variable.
+        shift_interventions : dict, optional
+            a dictionary where keys correspond to the intervened
+            variables, and the values are the distribution functions
+            (see sempler.noise) to generate noise samples which are
+            added to the intervened variables.
+        noise_interventions : dict, optional
+            a dictionary where keys correspond to the intervened
+            variables, and the values are the distribution functions
+            (see sempler.noise) of the new noise.
+        random_state: int, optional
+            set the random state, for reproducibility.
+
+        Returns
+        -------
+        X : np.array
+            an array containing the sample, where each column
+            corresponds to a variable.
+        
         """
         # Set random state (if requested)
         np.random.seed(random_state) if random_state is not None else None
         # Sample according to a topological ordering of the connectivity matrix
         X = np.zeros((n, self.p))
         for i in self.ordering:
+            # If i is do intervened, sample from the corresponding
+            # interventional distribution
             if i in do_interventions:
                 X[:,i] = do_interventions[i](n)
+            # Otherwise maintain dependence on parents
             else:
                 assignment = np.transpose(self.assignments[i](X[:, self.A[:,i] == 1]))
-                noise = self.noise_distributions[i](n)
-                shift = shift_interventions[i](n) if i in shift_interventions else 0
-                X[:,i] = assignment + noise + shift
+                # Shift-intervention: add noise from given distribution
+                if i in shift_interventions:
+                    noise = self.noise_distributions[i](n) + shift_interventions[i](n)
+                # Noise-intervention: sample noise from given distribution
+                elif i in noise_interventions:
+                    noise = noise_interventions[i](n)
+                # No intervention: sample noise from original distribution
+                else:
+                    noise = self.noise_distributions[i](n)
+                X[:,i] = assignment + noise
         return X
-
 
 #---------------------------------------------------------------------
 # LGANM class
 class LGANM:
     """Represents a linear model with Gaussian additive noise
     (i.e. Gaussian Bayesian Network).
+
+    Attributes
+    ----------
+    W : np.array:
+        connectivity (weights) matrix representing a DAG.
+    variances : np.array
+        the variances of the noise terms.
+    means : np.array
+        the means of the noise terms.
+
     """
     
-    def __init__(self, W, variances, means = None):
+    def __init__(self, W, variances, means):
         """
+        Create a linear Gaussian SCM.
+        
         Parameters
-        - W (np.array): weighted connectivity matrix representing a DAG
-        - variances (np.array or tuple): either a vector of variances or a tuple
-          indicating range for uniform sampling
-        - means (np.array, tuple or None): either a vector of means, a tuple
-          indicating the range for uniform sampling or None (zero
-          means)
+        ----------
+        W : np.array:
+            connectivity (weights) matrix representing a DAG.
+        variances : np.array or tuple
+            the variances of the noise terms, or a tuple representing
+            the lower/upper bounds to sample them from a uniform
+            distribution.
+        means : np.array or tuple
+            the means of the noise terms, or a tuple representing
+            the lower/upper bounds to sample them from a uniform
+            distribution.
+
+        Returns
+        -------
+
         """
         self.W = W.copy()
         self.p = len(W)
@@ -107,28 +190,56 @@ class LGANM:
         elif type(variances) == np.ndarray and len(variances) == self.p:
             self.variances = variances.copy()
         else:
-            raise Exception("Wrong value for variances")
+            raise ValueError("Wrong value for variances")
             
         # Set means
-        if means is None:
-            self.means = np.zeros(self.p)
-        elif isinstance(means, tuple) and len(means) == 2:
+        if isinstance(means, tuple) and len(means) == 2:
             self.means = np.random.uniform(means[0], means[1], size=self.p)
         elif type(means)==np.ndarray and len(means) == self.p:
             self.means = means.copy()
         else:
-            raise Exception("Wrong value for means")
+            raise ValueError("Wrong value for means")
     
-    def sample(self, n=100, population=False, do_interventions=None, shift_interventions=None):
+    def sample(self, n=100, population=False, do_interventions=None, shift_interventions=None, noise_interventions=None):
+        """Generates n observations from the linear Gaussian SCM, under the
+        given do, shift or noise interventions. If none are given,
+        sample from the observational distribution.
+        
+        Parameters
+        ----------
+        n : int,optional
+            the size of the sample (i.e. number of
+            observations). Defaults to 100.
+        population : bool, optional
+            if True, the function returns a symbolic normal
+            distribution instead of samples (see
+            sempler.NormalDistribution). Defaults to False.
+        do_interventions : dict, optional
+            a dictionary where keys correspond to the intervened
+            variables, and the values are tuples representing the new
+            mean/variance of the intervened variable, e.g. {1: (1,2)}.
+        shift_interventions : dict, optional
+            a dictionary where keys correspond to the intervened
+            variables, and the values are tuples representing the
+            mean/variance of the noise which is added to the
+            intervened variables, e.g. {1: (1,2)}.
+        noise_interventions : dict, optional
+            a dictionary where keys correspond to the intervened
+            variables, and the values are tuples representing the
+            mean/variance of the new noise, e.g. {1: (1,2)}.
+        random_state: int, optional
+            set the random state, for reproducibility.
+
+        Returns
+        -------
+        X : np.array or sempler.NormalDistribution
+            an array containing the sample, where each column
+            corresponds to a variable; or, if population=True, a
+            symbolic normal distribution (see
+            sempler.NormalDistribution).
+
         """
-        If population is set to False:
-          - Generate n samples from a given Linear Gaussian SCM, under the given
-            interventions (by default samples observational data)
-        if set to True:
-          - Return the "symbolic" joint distribution under the given
-            interventions (see class NormalDistribution)
-        """
-        # Must copy as they can be changed by intervention, but we
+        # Must copy as they can be changed by interventions, but we
         # still want to keep the observational SEM
         W = self.W.copy()
         variances = self.variances.copy()
@@ -136,15 +247,23 @@ class LGANM:
 
         # Perform shift interventions
         if shift_interventions:
-            shift_interventions = parse_interventions(shift_interventions)
+            shift_interventions = _parse_interventions(shift_interventions)
             targets = shift_interventions[:,0].astype(int)
             means[targets] += shift_interventions[:,1]
             variances[targets] += shift_interventions[:,2]
+
+        # Perform noise interventions. Note that they take preference
+        # i.e. "override" shift interventions
+        if noise_interventions:
+            noise_interventions = _parse_interventions(noise_interventions)
+            targets = noise_interventions[:,0].astype(int)
+            means[targets] = noise_interventions[:,1]
+            variances[targets] = noise_interventions[:,2]
         
         # Perform do interventions. Note that they take preference
-        # i.e. "override" shift interventions
+        # i.e. "override" shift and noise interventions
         if do_interventions:
-            do_interventions = parse_interventions(do_interventions)
+            do_interventions = _parse_interventions(do_interventions)
             targets = do_interventions[:,0].astype(int)
             means[targets] = do_interventions[:,1]
             variances[targets] = do_interventions[:,2]
@@ -160,8 +279,9 @@ class LGANM:
         else:
             return distribution
 
-def parse_interventions(interventions_dict):
-    """Used internally by LGANM.sample. Transform the interventions from a dictionary to an array"""
+def _parse_interventions(interventions_dict):
+    """Used internally by LGANM.sample. Transforms the interventions from
+    a dictionary to an array"""
     interventions = []
     for (target, params) in interventions_dict.items():
         # Mean and variance provided
@@ -178,8 +298,35 @@ def parse_interventions(interventions_dict):
 # DAG Generating Functions
 
 def dag_avg_deg(p, k, w_min, w_max, debug=False, random_state=None, return_ordering=False):
-    """
-    Generate a random graph with p nodes and average degree k
+    """Generate an Erdos-Renyi graph with p nodes and average degree k,
+    and orient edges according to a random ordering. Sample the edge
+    weights from a uniform distribution.
+
+    Parameters
+    ----------
+    p : int
+        the number of nodes in the graph.
+    k : float
+        the desired average degree.
+    w_min : float
+        the lower bound on the sampled weights.
+    w_max : float
+        the upper bound on the sampled weights.
+    debug : bool, optional
+        if debug traces should be printed
+    random_state : int,optional
+        to set the random state for reproducibility.
+    return_ordering: bool, optional
+        if the topological ordering used to orient the edge should be
+        returned.
+
+    Returns
+    -------
+    W : np.array
+       the connectivity (weights) matrix of the generated DAG.
+    ordering : np.array, optional
+       if return_ordering = True, a topological ordering of the graph.
+
     """
     np.random.seed(random_state) if random_state is not None else None
     # Generate adjacency matrix as if top. ordering is 1..p
@@ -201,8 +348,25 @@ def dag_avg_deg(p, k, w_min, w_max, debug=False, random_state=None, return_order
         return W[permutation, :][:, permutation]
 
 def dag_full(p, w_min=1, w_max=1, debug=False):
-    """Creates a fully connected DAG (ie. upper triangular adj. matrix
-    with all ones)"""
+
+    """Create a fully connected DAG, sampling the weights from a uniform
+    distribution.
+
+    Parameters
+    ----------
+    p : int
+        the number of nodes in the graph.
+    w_min : float, optional
+        the lower bound on the sampled weights. Defaults to 1.
+    w_max : float, optional
+        the upper bound on the sampled weights. Defaults to 1.
+
+    Returns
+    -------
+    W : np.array
+       the connectivity (weights) matrix of the generated DAG.
+
+    """
     A = np.triu(np.ones((p,p)), k=1)
     weights = np.random.uniform(w_min, w_max, size=A.shape)
     W = A * weights
@@ -214,33 +378,92 @@ class NormalDistribution():
     """Symbolic representation of a normal distribution that allows for
     marginalization, conditioning and sampling
     
-    Attributes:
-      - mean: mean vector
-      - covariance: covariance matrix
-      - p: number of variables
+    Attributes
+    ----------
+    mean : np.array
+        the marginal means of the variables.
+    covariance : np.array
+        the covariance matrix of the distribution.
+    p : int
+        the number of variables.
 
     """
     def __init__(self, mean, covariance):
+        """Create a representation of a normal distribution.
+
+        Parameters
+        ----------
+        mean : np.array
+            the marginal means of the variables.
+        covariance : np.array
+            the covariance matrix of the distribution.
+
+        Returns
+        -------
+
+        """
         self.p = len(mean)
         self.mean = mean.copy()
         self.covariance = covariance.copy()
 
-    def sample(self, n):
-        """Sample from the distribution"""
+    def sample(self, n, random_state = None):
+        """Generate a sample from the distribution.
+
+        Parameters
+        ----------
+        n : int
+            the size of the sample (i.e. number of observations).
+        random_state : int,optional
+            to set the random state for reproducibility.
+
+        Returns
+        -------
+        X : np.array
+            an array containing the sample, where each column
+            corresponds to a variable.
+
+        """
+        np.random.seed(random_state) if random_state is not None else None
         return np.random.multivariate_normal(self.mean, self.covariance, size=n)
 
     def marginal(self, X):
-        """Return the marginal distribution of the variables with indices X"""
+        """Return the marginal distribution of the variables with indices X.
+        
+        Parameters
+        ----------
+        X : int, list of ints or np.array
+            the indices of the variables.
+        
+        Returns
+        -------
+        distribution : sempler.NormalDistribution
+            the marginal distribution.
+
+        """
         # Parse params
         X = np.atleast_1d(X)
         # Compute marginal mean/variance
         mean = self.mean[X].copy()
-        covariance = matrix_block(self.covariance, X, X).copy()
+        covariance = utils.matrix_block(self.covariance, X, X).copy()
         return NormalDistribution(mean, covariance)
 
     def conditional(self, Y, X, x):
-        """Return the conditional distribution of the variables with indices Y
-        given observations x of the variables with indices X
+        """Return the conditional distribution of some variables given some
+        others' values.
+        
+        Parameters
+        ----------
+        Y : int, list of ints or np.array
+            the indices of the conditioned variables.
+        X : int, list of ints or np.array
+            the indices of the variables to condition on.
+        x : np.array
+            the values of the conditioning variables.
+        
+        Returns
+        -------
+        distribution : sempler.NormalDistribution
+            the conditional distribution.
 
         """
         # Parse params
@@ -250,10 +473,10 @@ class NormalDistribution():
         if len(X) == 0:
             return self.marginal(Y)
         # See https://en.wikipedia.org/wiki/Multivariate_normal_distribution#Conditional_distributions
-        cov_y = matrix_block(self.covariance, Y, Y)
-        cov_x = matrix_block(self.covariance, X, X)
-        cov_yx = matrix_block(self.covariance, Y, X)
-        cov_xy = matrix_block(self.covariance, X, Y)
+        cov_y = utils.matrix_block(self.covariance, Y, Y)
+        cov_x = utils.matrix_block(self.covariance, X, X)
+        cov_yx = utils.matrix_block(self.covariance, Y, X)
+        cov_xy = utils.matrix_block(self.covariance, X, Y)
         mean_y = self.mean[Y]
         mean_x = self.mean[X]
         mean = mean_y + cov_yx @ np.linalg.inv(cov_x) @ (x - mean_x)
@@ -261,24 +484,54 @@ class NormalDistribution():
         return NormalDistribution(mean,covariance)
 
     def regress(self, y, Xs):
-        """Compute the coefficients and intercept of regressing y on
-        predictors Xs, where the joint distribution is a multivariate
-        Gaussian
+        """Compute the population MLE of the regression coefficients and
+        intercept from regressing a variable on a subset of others.
+
+        Parameters
+        ----------
+        y : int
+            the index of the response/predicted/explanatory variable.
+        Xs : int, list of ints or np.array
+            the indices of the predictor/explanatory variables.
+        
+        Returns
+        -------
+        coefs : np.array
+            the estimated regression coefficients.
+        intercept : float
+            the estimated intercept.
+
         """
         coefs = np.zeros(self.p)
         # If predictors are given, perform regression, otherwise just fit
         # intercept
         Xs = np.atleast_1d(Xs)
         if len(Xs) > 0:
-            cov_y_xs = matrix_block(self.covariance, [y], Xs)
-            cov_xs = matrix_block(self.covariance, Xs, Xs)
+            cov_y_xs = utils.matrix_block(self.covariance, [y], Xs)
+            cov_xs = utils.matrix_block(self.covariance, Xs, Xs)
             coefs[Xs] = cov_y_xs @ np.linalg.inv(cov_xs)
         intercept = self.mean[y] - coefs @ self.mean
         return (coefs, intercept)
 
     def mse(self, y, Xs):
-        """Compute the population MSE of regressing y on predictors Xs, where
-        the joint distribution is a multivariate Gaussian
+        """Compute the population (i.e. expected) mean squared error resulting
+        from regressing a variable on a subset of others.
+
+        The regression coefficients/intercept are the MLE computed in
+        NormalDistribution.regress.
+
+        Parameters
+        ----------
+        y : int
+            the index of the response/predicted/explanatory variable.
+        Xs : int, list of ints or np.array
+            the indices of the predictor/explanatory variables.
+
+        Returns
+        -------
+        mse : float
+           the expected mean squared error.
+
         """
         var_y = self.covariance[y,y]
         # Compute regression coefficients when regressing on Xs
@@ -290,4 +543,22 @@ class NormalDistribution():
         return mse
 
     def equal(self, dist, tol=1e-7):
+        """Check if this distribution is equal to another
+        sempler.NormalDistribution, up to a tolerance.
+
+        Parameters
+        ----------
+        dist : sempler.NormalDistribution
+            the distribution to compare with.
+        tol : float, optional
+            the allowed (absolute) tolerance in mean and
+            covariance. Default is 1e-7.
+
+        Returns
+        -------
+        equal : bool
+            if the two distributions have the same mean/covariance up
+            to tolerance tol.
+
+        """        
         return np.allclose(self.mean, dist.mean) and np.allclose(self.covariance, dist.covariance)

@@ -69,7 +69,7 @@ class SEM_Tests(unittest.TestCase):
         # Test the initialization of an LGANM object
         p = 10
         W = dag_avg_deg(p, p/4, 1, 1)
-        sem = LGANM(W, (1,1))
+        sem = LGANM(W, (1,1), (0,0))
         self.assertTrue((sem.variances == np.ones(p)).all())
         self.assertTrue((sem.means == np.zeros(p)).all())
         self.assertTrue(np.sum((sem.W == 0).astype(float) + (sem.W == 1).astype(float)), p*p)
@@ -90,6 +90,8 @@ class SEM_Tests(unittest.TestCase):
             LGANM(W, (0,1), (0,0,0,0,0))
         with self.assertRaises(Exception):
             LGANM(W, (0,1,2,3), (0,0,0))
+        with self.assertRaises(Exception):
+            LGANM(W, (0,1,2,3))
 
     def test_memory(self):
         # Test that all arguments are copied and not simply stored by
@@ -133,7 +135,7 @@ class SEM_Tests(unittest.TestCase):
         p = 1
         n = round(1e6)
         W = dag_full(p)
-        sem = LGANM(W, (1,1))
+        sem = LGANM(W, (1,1), (0,0))
         # Observational data
         truth = np.random.normal(0,1,size=(n,1))
         samples = sem.sample(n, shift_interventions = {})
@@ -154,7 +156,7 @@ class SEM_Tests(unittest.TestCase):
         p = 4
         n = round(1e6)
         W = dag_full(p)
-        sem = LGANM(W, (0.16,0.16))
+        sem = LGANM(W, (0.16,0.16), (0,0))
         np.random.seed(42)
         noise = np.random.normal([0,0,0,0],[.4, .4, .4, .4], size=(n,4))
         truth = np.zeros((n,p))
@@ -177,7 +179,7 @@ class SEM_Tests(unittest.TestCase):
                       [0, 0, 0, 0, 1, 1],
                       [0, 0, 0, 0, 0, 1],
                       [0, 0, 0, 0, 0, 0]])
-        sem = LGANM(W, (0.16,0.16))
+        sem = LGANM(W, (0.16,0.16), (0,0))
 
         # Test observational data
         M = np.array([[1, 0, 0, 0, 0, 0],
@@ -289,7 +291,7 @@ class SEM_Tests(unittest.TestCase):
                       [0,0,0,0]])
         # Build SEM with unit weights and standard normal noise
         # variables
-        sem = LGANM(W, (1,1))
+        sem = LGANM(W, (1,1), (0,0))
         # Observational Distribution
         distribution = sem.sample(population=True)
         true_cov = np.array([[1,0,1,1],
@@ -328,7 +330,7 @@ class SEM_Tests(unittest.TestCase):
                       [0, 0, 0, 0, 1, 1],
                       [0, 0, 0, 0, 0, 1],
                       [0, 0, 0, 0, 0, 0]])
-        sem = LGANM(W, (0.16,0.16))
+        sem = LGANM(W, (0.16,0.16), (0,0))
 
         # Test observational data
         M = np.array([[1, 0, 0, 0, 0, 0],
@@ -346,6 +348,7 @@ class SEM_Tests(unittest.TestCase):
         noise = np.random.normal([0,0,0,0,0,0], [.4, .4, .4, .4, .6, .4], size=(n,p))
         truth = noise @ M.T
         samples = sem.sample(n, shift_interventions = {4: (0,0.2)})
+        print(truth, samples)
         self.assertTrue(same_normal(truth, samples))
 
         # Test noiseless shift intervention on X2
