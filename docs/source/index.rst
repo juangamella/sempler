@@ -1,13 +1,23 @@
 Welcome to sempler's documentation!
 ===================================
 
-.. automodule:: sempler.sempler
-    :members:
+This is a test
+==============
 
+Blah blah.::
+
+    print('test')
+    >>> test
+
+This is a section
+^^^^^^^^^^^^^^^^^
+    
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+   test_file
+   
 
 
 Indices and tables
