@@ -44,46 +44,74 @@ import sempler.functions as functions
 class ANM:
     """
     Class to represent a general (acyclic) additive noise model.
-    
+        
     Parameters
     ----------
-    A : np.array
+    A : numpy.ndarray
         The p x p adjacency matrix specifying the functional
-        dependencies-
-    p : int
-        the number of variables.
-    assignments : list of function
-        the assignment functions of the variables.
+        dependencies, where `A[i,j] != 0` if `i` appears in the
+        assignment of `j` (i.e. `i -> j`).
+    functions : list of (function or None)
+        a list of p functions representing the functional
+        assignments of each variable. Each function must take as
+        many arguments as specified by the adjacency matrix `A`, or
+        be `None` if the variable has no parents.
     noise_distributions : list of function
-        a list of functions representing the noise term distribution
-        of each variable.
+        a list of `p` functions that generate samples of each
+        variable's noise distribution (see sempler.noise for
+        details).
+
+    Raises
+    ------
+    ValueError
+        If the given adjacency does not correspond to a DAG.
+
+    Example
+    -------
+
+    Constructing an ANM.
+
+    >>> import sempler
+    >>> import sempler.noise as noise
+    >>> import numpy as np
+
+    (1) Define the connectivity matrix:
+
+    >>> A = np.array([[0, 0, 0, 1, 0],
+    ...               [0, 0, 1, 0, 0],
+    ...               [0, 0, 0, 1, 0],
+    ...               [0, 0, 0, 0, 1],
+    ...               [0, 0, 0, 0, 0]])
+
+    (2) Define the noise distributions (see sempler.noise):
+
+    >>> noise_distributions = [noise.normal(0,1)] * 5
+
+    (3) Define the variable assignments:
+
+    >>> functions = [None, None, np.sin, lambda x: np.exp(x[:,0]) + 2*x[:,1], lambda x: 2*x]
+
+    Putting it all together:
+
+    >>> anm = sempler.ANM(A, functions, noise_distributions)
+
+    Attributes
+    ----------
+    A : numpy.ndarray
+        The p x p adjacency matrix specifying the functional
+        dependencies.
+    p : int
+        The number of variables (size) of the SCM.
+    assignments : list of function
+        The assignment functions of the variables.
+    noise_distributions : list of function
+        A list of functions representing the noise term distribution
+        of each variable (see sempler.noise).
 
     """
     
     def __init__(self, A, assignments, noise_distributions):
-        """Creates an instance of the ANM class, representing an SCM over p
-        observed variables.
-        
-        Parameters
-        ----------
-        A : np.array
-            The p x p adjacency matrix specifying the functional
-            dependencies, where A[i,j] != 0 if i appears in the
-            assignment of j (i.e. i -> j).
-        functions : list of function or NoneType
-            a list of p functions representing the functional
-            assignments of each variable. Each function must take as
-            many arguments as specified by the adjacency matrix A, or
-            be None if the variable has no parents.
-        noise_distributions : list of function
-            a list of p functions that generate samples of each
-            variable's noise distribution (see sempler.noise for
-            details).
-
-        """
-        try:
-            self.ordering = utils.topological_ordering(A)
-        except 
+        self.ordering = utils.topological_ordering(A)
         self.p = len(A)
         self.A = deepcopy(A)
         self.assignments = [functions.null if fun is None else deepcopy(fun) for fun in assignments]
@@ -118,10 +146,27 @@ class ANM:
 
         Returns
         -------
-        X : np.array
+        numpy.ndarray
             an array containing the sample, where each column
             corresponds to a variable.
         
+        Examples
+        --------
+
+        Sampling from the observational setting:
+
+        >>> samples = anm.sample(100)
+
+        Sampling under a shift intervention on variable 1:
+
+        >>> import sempler.noise as noise
+        >>> samples = anm.sample(100, shift_interventions = {1: noise.normal(0,1)})
+
+        Sampling under a noise intervention on variable 0 and a do intervention on variable 2:
+
+        >>> samples = anm.sample(100,
+        ...                      noise_interventions = {0: noise.normal()},
+        ...                      do_interventions = {2 : noise.uniform()})        
         """
         # Set random state (if requested)
         np.random.seed(random_state) if random_state is not None else None
@@ -146,3 +191,17 @@ class ANM:
                     noise = self.noise_distributions[i](n)
                 X[:,i] = assignment + noise
         return X
+
+if __name__ == '__main__':
+    import doctest
+    import sempler.noise
+    # Build ANM
+    A = np.array([[0, 0, 0, 1, 0],
+                  [0, 0, 1, 0, 0],
+                  [0, 0, 0, 1, 0],
+                  [0, 0, 0, 0, 1],
+                  [0, 0, 0, 0, 0]])
+    noise_distributions = [sempler.noise.normal(0,1)] * 5
+    assignments = [None, None, np.sin, lambda x: np.exp(x[:,0]) + 2*x[:,1], lambda x: 2*x]
+    anm = ANM(A, assignments, noise_distributions)
+    doctest.testmod(extraglobs={'anm': anm}, verbose=True)
