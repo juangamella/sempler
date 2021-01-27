@@ -21,5 +21,11 @@ anm = sempler.ANM(A, functions, noise_distributions)
 # Sampling from the observational setting
 samples = anm.sample(100)
 
-# Sampling under a shift intervention on variable 1
-samples = anm.sample(100, shift_interventions = {1: noise.normal(0,1)})
+# Sampling under a noise intervention on variable 1
+samples = anm.sample(100, noise_interventions = {1: noise.normal(0,1)})
+
+#Sampling under a noise intervention on variable 0 and a do intervention on variable 2:
+
+samples = anm.sample(100,
+                     noise_interventions = {0: noise.normal()},
+                     do_interventions = {2 : noise.uniform()})

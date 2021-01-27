@@ -42,22 +42,21 @@ import sempler.functions as functions
 #---------------------------------------------------------------------
 # ANM class
 class ANM:
-    """
-    Class to represent a general (acyclic) additive noise model.
+    """Class to represent a general (acyclic) additive noise model.
         
     Parameters
     ----------
     A : numpy.ndarray
-        The p x p adjacency matrix specifying the functional
-        dependencies, where `A[i,j] != 0` if `i` appears in the
-        assignment of `j` (i.e. `i -> j`).
-    functions : list of (function or None)
-        a list of p functions representing the functional
-        assignments of each variable. Each function must take as
-        many arguments as specified by the adjacency matrix `A`, or
-        be `None` if the variable has no parents.
+        The `p x p` adjacency matrix specifying the functional
+        dependencies, where `p` is the number of variables and `A[i,j]
+        != 0` if `i` appears in the assignment of `j` (i.e. `i -> j`).
+    assignments : list of (function or None)
+        A list of p functions representing the functional assignments
+        of each variable. Each function must take as many arguments as
+        specified by the adjacency matrix `A`, or be `None` or
+        `sempler.functions.null` if the variable has no parents.
     noise_distributions : list of function
-        a list of `p` functions that generate samples of each
+        A list of `p` functions that generate samples from each
         variable's noise distribution (see sempler.noise for
         details).
 
@@ -89,17 +88,16 @@ class ANM:
 
     (3) Define the variable assignments:
 
-    >>> functions = [None, None, np.sin, lambda x: np.exp(x[:,0]) + 2*x[:,1], lambda x: 2*x]
+    >>> assignments = [None, None, np.sin, lambda x: np.exp(x[:,0]) + 2*x[:,1], lambda x: 2*x]
 
     Putting it all together:
 
-    >>> anm = sempler.ANM(A, functions, noise_distributions)
+    >>> anm = sempler.ANM(A, assignments, noise_distributions)
 
     Attributes
     ----------
     A : numpy.ndarray
-        The p x p adjacency matrix specifying the functional
-        dependencies.
+        The adjacency matrix specifying the functional dependencies.
     p : int
         The number of variables (size) of the SCM.
     assignments : list of function
@@ -118,37 +116,37 @@ class ANM:
         self.noise_distributions = deepcopy(noise_distributions)
             
     def sample(self, n, do_interventions = {}, shift_interventions = {}, noise_interventions = {}, random_state = None):
-        """
-        Generates n observations from the ANM, under the given do, shift or
-        noise interventions. If none are given, sample from the observational
+        """Generates i.i.d. observations from the ANM, under the given do, shift or
+        noise interventions. If no interventions are given, sample from the observational
         distribution.
         
         Parameters
         ----------
         n : int
-            the size of the sample (i.e. number of observations).
+            The size of the sample (i.e. number of observations).
         do_interventions : dict, optional
-            a dictionary where keys correspond to the intervened
+            A dictionary where keys correspond to the intervened
             variables, and the values are the distribution functions
             (see sempler.noise) to generate samples for each
             intervened variable.
         shift_interventions : dict, optional
-            a dictionary where keys correspond to the intervened
+            A dictionary where keys correspond to the intervened
             variables, and the values are the distribution functions
             (see sempler.noise) to generate noise samples which are
             added to the intervened variables.
         noise_interventions : dict, optional
-            a dictionary where keys correspond to the intervened
+            A dictionary where keys correspond to the intervened
             variables, and the values are the distribution functions
             (see sempler.noise) of the new noise.
         random_state: int, optional
-            set the random state, for reproducibility.
+            To set the random state for reproducibility,
+            i.e. successive calls will return the same sample.
 
         Returns
         -------
         numpy.ndarray
-            an array containing the sample, where each column
-            corresponds to a variable.
+            An array containing the sample, with each column
+            corresponding to a variable.
         
         Examples
         --------
@@ -166,7 +164,8 @@ class ANM:
 
         >>> samples = anm.sample(100,
         ...                      noise_interventions = {0: noise.normal()},
-        ...                      do_interventions = {2 : noise.uniform()})        
+        ...                      do_interventions = {2 : noise.uniform()})
+
         """
         # Set random state (if requested)
         np.random.seed(random_state) if random_state is not None else None
