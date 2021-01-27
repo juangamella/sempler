@@ -28,10 +28,90 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+"""
+"""
+
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 import itertools
+
+#---------------------------------------------------------------------
+# DAG Generating Functions
+
+def dag_avg_deg(p, k, w_min, w_max, debug=False, random_state=None, return_ordering=False):
+    """Generate an Erdos-Renyi graph with p nodes and average degree k,
+    and orient edges according to a random ordering. Sample the edge
+    weights from a uniform distribution.
+
+    Parameters
+    ----------
+    p : int
+        the number of nodes in the graph.
+    k : float
+        the desired average degree.
+    w_min : float
+        the lower bound on the sampled weights.
+    w_max : float
+        the upper bound on the sampled weights.
+    debug : bool, optional
+        if debug traces should be printed
+    random_state : int,optional
+        to set the random state for reproducibility.
+    return_ordering: bool, optional
+        if the topological ordering used to orient the edge should be
+        returned.
+
+    Returns
+    -------
+    W : np.array
+       the connectivity (weights) matrix of the generated DAG.
+    ordering : np.array, optional
+       if return_ordering = True, a topological ordering of the graph.
+
+    """
+    np.random.seed(random_state) if random_state is not None else None
+    # Generate adjacency matrix as if top. ordering is 1..p
+    prob = k / (p-1)
+    print("p = %d, k = %0.2f, P = %0.4f" % (p,k,prob)) if debug else None
+    A = np.random.uniform(size = (p,p))
+    A = (A <= prob).astype(float)
+    A = np.triu(A, k=1)
+    weights = np.random.uniform(w_min, w_max, size=A.shape)
+    W = A * weights
+    
+    # Permute rows/columns according to random topological ordering
+    permutation = np.random.permutation(p)
+    # Note the actual topological ordering is the "conjugate" of permutation eg. [3,1,2] -> [2,3,1]
+    print("avg degree = %0.2f" % (np.sum(A) * 2 / len(A))) if debug else None
+    if return_ordering:
+        return (W[permutation, :][:, permutation], np.argsort(permutation))
+    else:
+        return W[permutation, :][:, permutation]
+
+def dag_full(p, w_min=1, w_max=1, debug=False):
+    """Create a fully connected DAG, sampling the weights from a uniform
+    distribution.
+
+    Parameters
+    ----------
+    p : int
+        the number of nodes in the graph.
+    w_min : float, optional
+        the lower bound on the sampled weights. Defaults to 1.
+    w_max : float, optional
+        the upper bound on the sampled weights. Defaults to 1.
+
+    Returns
+    -------
+    W : np.array
+       the connectivity (weights) matrix of the generated DAG.
+
+    """
+    A = np.triu(np.ones((p,p)), k=1)
+    weights = np.random.uniform(w_min, w_max, size=A.shape)
+    W = A * weights
+    return W
 
 def matrix_block(M, rows, cols):
     """
@@ -112,7 +192,6 @@ def topological_ordering(A):
     """Return a topological ordering for the DAG with adjacency matrix A"""
     G = nx.from_numpy_matrix(A, create_using = nx.DiGraph)
     return list(nx.algorithms.dag.topological_sort(G))
-    
 
 def plot_graph(W, block=False):
     G = nx.from_numpy_matrix(W, create_using = nx.DiGraph)
