@@ -16,7 +16,10 @@ This is a section
    :maxdepth: 2
    :caption: Contents:
 
-   test_file
+   anm
+   lganm
+   normal_distribution
+   utils
    
 
 
