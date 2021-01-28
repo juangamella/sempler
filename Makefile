@@ -14,6 +14,7 @@ endif
 doctests:
 	PYTHONPATH=./ python sempler/anm.py
 	PYTHONPATH=./ python sempler/lganm.py
+	PYTHONPATH=./ python sempler/normal_distribution.py
 
 # Run the example scripts in the README
 examples:
