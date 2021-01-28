@@ -58,23 +58,23 @@ class LGANM:
     Raises
     ------
     ValueError
-        If the given adjacency does not correspond to a DAG.
+        If the given connectivity does not correspond to a DAG.
 
     Examples
     --------
 
-    Constructing a LGANM.
+    Constructing a linear Gaussian SCM.
 
     >>> import sempler
     >>> import numpy as np
 
     (1) Define the connectivity matrix:
     
-    >>> A = np.array([[0, 0, 0, 0.1, 0],
+    >>> W = np.array([[0, 0, 0, 0.1, 0],
     ...               [0, 0, 2.1, 0, 0],
     ...               [0, 0, 0, 3.2, 0],
     ...               [0, 0, 0, 0, 5.0],
-    ...               [0, 0, 0,  0, 0 ]])
+    ...               [0, 0, 0, 0, 0  ]])
 
     (2a) With explicit means and variances:
 
@@ -82,7 +82,7 @@ class LGANM:
     >>> variances = np.array([1,1,1,1,1])
     >>> lganm = sempler.LGANM(W, means, variances)
 
-    (2b) With random means and variances:
+    (2b) With randomly sampled means and variances:
     
     >>> lganm = sempler.LGANM(W, (0,1), (0,1))
 
@@ -121,43 +121,63 @@ class LGANM:
         else:
             raise ValueError("Wrong value for means")
     
-    def sample(self, n=100, population=False, do_interventions=None, shift_interventions=None, noise_interventions=None):
+    def sample(self, n=100, population=False, do_interventions={}, shift_interventions={}, noise_interventions={}):
         """Generates n observations from the linear Gaussian SCM, under the
         given do, shift or noise interventions. If none are given,
         sample from the observational distribution.
         
         Parameters
         ----------
-        n : int,optional
-            the size of the sample (i.e. number of
+        n : int, optional
+            The size of the sample (i.e. number of
             observations). Defaults to 100.
         population : bool, optional
-            if True, the function returns a symbolic normal
+            If True, the function returns a symbolic normal
             distribution instead of samples (see
             sempler.NormalDistribution). Defaults to False.
         do_interventions : dict, optional
-            a dictionary where keys correspond to the intervened
+            A dictionary where keys correspond to the intervened
             variables, and the values are tuples representing the new
             mean/variance of the intervened variable, e.g. {1: (1,2)}.
         shift_interventions : dict, optional
-            a dictionary where keys correspond to the intervened
+            A dictionary where keys correspond to the intervened
             variables, and the values are tuples representing the
             mean/variance of the noise which is added to the
             intervened variables, e.g. {1: (1,2)}.
         noise_interventions : dict, optional
-            a dictionary where keys correspond to the intervened
+            A dictionary where keys correspond to the intervened
             variables, and the values are tuples representing the
             mean/variance of the new noise, e.g. {1: (1,2)}.
         random_state: int, optional
-            set the random state, for reproducibility.
+            To set the random state for reproducibility. Succesive
+            calls with the same random state will return the same
+            sample.
 
         Returns
         -------
-        X : np.array or sempler.NormalDistribution
-            an array containing the sample, where each column
+        numpy.ndarray or sempler.NormalDistribution
+            An array containing the sample, where each column
             corresponds to a variable; or, if population=True, a
             symbolic normal distribution (see
             sempler.NormalDistribution).
+
+        Examples
+        --------
+
+        Sampling the observational environment in the "population setting"
+        
+        >>> distribution = lganm.sample(population = True)
+
+        Sampling under a shift intervention on variable 1 with standard gaussian noise
+
+        >>> samples = lganm.sample(100, shift_interventions = {1: (0,1)})
+
+        Sampling under a noise intervention on variable 0 and a do intervention on variable 2:
+
+        >>> samples = lganm.sample(100,
+        ...                       noise_interventions = {0: (1,2)},
+        ...                       do_interventions = {2 : (3,4)})
+
 
         """
         # Must copy as they can be changed by interventions, but we
@@ -214,3 +234,17 @@ def _parse_interventions(interventions_dict):
         else:
             raise ValueError("Wrongly specified intervention")
     return np.array(interventions)
+
+
+# To run the LGANM.sample doctests
+if __name__ == '__main__':
+    import doctest
+    import sempler.noise
+    # Build LGANM
+    W = np.array([[0, 0, 0, 0.1, 0],
+              [0, 0, 2.1, 0, 0],
+              [0, 0, 0, 3.2, 0],
+              [0, 0, 0, 0, 5.0],
+              [0, 0, 0, 0, 0]])
+    lganm = LGANM(W, (0,1), (0,1))
+    doctest.testmod(extraglobs={'lganm': lganm}, verbose=True)

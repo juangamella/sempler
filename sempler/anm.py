@@ -191,6 +191,8 @@ class ANM:
                 X[:,i] = assignment + noise
         return X
 
+
+# To run the ANM.sample doctests
 if __name__ == '__main__':
     import doctest
     import sempler.noise

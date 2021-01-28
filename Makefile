@@ -13,6 +13,7 @@ endif
 # Run the doctests
 doctests:
 	PYTHONPATH=./ python sempler/anm.py
+	PYTHONPATH=./ python sempler/lganm.py
 
 # Run the example scripts in the README
 examples:
