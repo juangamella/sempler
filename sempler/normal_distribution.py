@@ -125,6 +125,9 @@ class NormalDistribution():
         self.mean = mean.copy()
         self.covariance = covariance.copy()
 
+    def __str__(self):
+        return "mean:\n" + str(self.mean) + "\ncovariance:\n" + str(self.covariance)
+    
     def sample(self, n, random_state = None):
         """Generate a sample from the distribution.
 
