@@ -44,7 +44,7 @@ class LGANM:
 
     Parameters
     ----------
-    W : numpy.ndarray
+    W : array_like
         Connectivity (weights) matrix representing a DAG.
     variances : numpy.ndarray or tuple
         The variances of the noise terms, or a tuple representing
@@ -86,9 +86,17 @@ class LGANM:
     
     >>> lganm = sempler.LGANM(W, (0,1), (0,1))
 
+    An exception is thrown when the connectivity matrix does not correspond to a DAG:
+
+    >>> A = [[0,1,0],[0,0,1],[1,0,0]]
+    >>> sempler.LGANM(A, (0,0), (1,1))
+    Traceback (most recent call last):
+      ...
+    ValueError: The given graph is not a DAG.
+
     Attributes
     ----------
-    W : numpy.ndarray
+    W : array_like
         Connectivity (weights) matrix representing a DAG.
     variances : numpy.ndarray
         The variances of the noise terms.
@@ -100,8 +108,10 @@ class LGANM:
     """
     
     def __init__(self, W, means, variances):
+        # Set connectivity matrix
+        W = np.atleast_2d(W)
         if not utils.is_dag(W):
-            raise ValueError("The given graph is not a DAG")
+            raise ValueError("The given graph is not a DAG.")
         self.W = W.copy()
         self.p = len(W)
 
@@ -109,17 +119,16 @@ class LGANM:
         if isinstance(variances, tuple) and len(variances) == 2:
             self.variances = np.random.uniform(variances[0], variances[1], size=self.p)
         elif type(variances) == np.ndarray and len(variances) == self.p:
-            self.variances = variances.copy()
+                self.variances = variances.copy()
         else:
-            raise ValueError("Wrong value for variances")
-            
+            raise ValueError("Unexpected value for variances. Expected a two-element tuple or numpy.ndarray of length p.")
         # Set means
         if isinstance(means, tuple) and len(means) == 2:
             self.means = np.random.uniform(means[0], means[1], size=self.p)
         elif type(means)==np.ndarray and len(means) == self.p:
             self.means = means.copy()
         else:
-            raise ValueError("Wrong value for means")
+            raise ValueError("Unexpected value for means. Expected a two-element tuple or numpy.ndarray of length p.")
     
     def sample(self, n=100, population=False, do_interventions={}, shift_interventions={}, noise_interventions={}):
         """Generates n observations from the linear Gaussian SCM, under the
@@ -178,6 +187,11 @@ class LGANM:
         ...                       noise_interventions = {0: (1,2)},
         ...                       do_interventions = {2 : (3,4)})
 
+        Interventions can also be deterministic, i.e. setting a variable/noise term to a fixed value:
+
+        >>> samples = lganm.sample(5, do_interventions = {2 : (99,0)})
+        >>> samples[:,2]
+        array([99., 99., 99., 99., 99.])
 
         """
         # Must copy as they can be changed by interventions, but we
