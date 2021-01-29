@@ -94,6 +94,14 @@ class ANM:
 
     >>> anm = sempler.ANM(A, assignments, noise_distributions)
 
+    An exception is raised if the adjacency matrix does not belong to a DAG:
+
+    >>> A[4,0] = 1
+    >>> sempler.LGANM(A, (0,0), (1,1))
+    Traceback (most recent call last):
+      ...
+    ValueError: The given graph is not a DAG.
+
     Attributes
     ----------
     A : numpy.ndarray
