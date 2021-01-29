@@ -188,10 +188,69 @@ def ancestors(i, W):
     G = nx.from_numpy_matrix(W, create_using = nx.DiGraph)
     return nx.algorithms.dag.ancestors(G, i)
 
+def is_dag(A):
+    """Checks wether the given adjacency matrix corresponds to a DAG.
+
+    Parameters
+    ----------
+    A : np.array
+        the adjacency matrix of the graph, where A[i,j] != 0 => i -> j.
+
+    Returns
+    -------
+    is_dag : bool
+        if the adjacency corresponds to a DAG
+
+    """
+    try:
+        topological_ordering(A)
+        return True
+    except ValueError:
+        return False
+
 def topological_ordering(A):
-    """Return a topological ordering for the DAG with adjacency matrix A"""
-    G = nx.from_numpy_matrix(A, create_using = nx.DiGraph)
-    return list(nx.algorithms.dag.topological_sort(G))
+    """Return a topological ordering for the DAG with adjacency matrix A,
+    using Kahn's 1962 algorithm.
+
+    Raises a ValueError exception if the given adjacency does not
+    correspond to a DAG.
+    
+    Parameters
+    ----------
+    A : np.array
+        The adjacency matrix of the graph, where A[i,j] != 0 => i -> j.
+
+    Returns
+    -------
+    ordering : list of ints
+        A topological ordering for the DAG.
+
+    Raises
+    ------
+    ValueError
+        If the given adjacency does not correspond to a DAG.
+
+    """
+    # Check that there are no undirected edges
+    if (np.logical_and(A, A.T)).sum() > 0:
+        raise ValueError("The given graph is not a DAG")
+    # Run the algorithm from the 1962 paper "Topological sorting of
+    # large networks" by AB Kahn
+    A = A.copy()
+    sinks = list(np.where(A.sum(axis=0) == 0)[0])
+    ordering = []
+    while len(sinks) > 0:
+        i = sinks.pop()
+        ordering.append(i)
+        for j in ch(i,A):
+            A[i,j] = 0
+            if len(pa(j,A)) == 0:
+                sinks.append(j)
+    # If A still contains edges there is at least one cycle
+    if A.sum() > 0:
+        raise ValueError("The given graph is not a DAG")
+    else:
+        return ordering
 
 def plot_graph(W, block=False):
     G = nx.from_numpy_matrix(W, create_using = nx.DiGraph)
@@ -219,7 +278,106 @@ def allclose(A, B, rtol=1e-5, atol=1e-8):
     the smallest element compared
     """
     return np.allclose(np.maximum(A,B), np.minimum(A,B), rtol, atol)
+
+# --------------------------------------------------------------------
+# Graph functions for PDAGS
+
+def na(y,x,A):
+    """Return all neighbors of y which are adjacent to x in A.
     
+    Parameters
+    ----------
+    y : int
+        the node's index
+    x : int
+        the node's index
+    A : np.array
+        the adjacency matrix of the graph, where A[i,j] != 0 => i -> j
+        and A[i,j] != 0 & A[j,i] != 0 => i - j.
+
+    Returns
+    -------
+    nodes : set of ints
+        the resulting nodes
+
+    """
+    return neighbors(y,A) & adj(x,A)
+
+def neighbors(i,A):
+    """The neighbors of i in A, i.e. all nodes connected to i by an
+    undirected edge.
+
+    Parameters
+    ----------
+    i : int
+        the node's index
+    A : np.array
+        the adjacency matrix of the graph, where A[i,j] != 0 => i -> j
+        and A[i,j] != 0 & A[j,i] != 0 => i - j.
+
+    Returns
+    -------
+    nodes : set of ints
+        the neighbor nodes
+
+    """
+    return set(np.where(np.logical_and(A[i,:] != 0, A[:,i] != 0))[0])
+    
+def adj(i, A):
+    """The adjacent nodes of i in A, i.e. all nodes connected by a
+    directed or undirected edge.
+    Parameters
+    ----------
+    i : int
+        the node's index
+    A : np.array
+        the adjacency matrix of the graph, where A[i,j] != 0 => i -> j
+        and A[i,j] != 0 & A[j,i] != 0 => i - j.
+
+    Returns
+    -------
+    nodes : set of ints
+        the adjacent nodes
+
+    """
+    return set(np.where(np.logical_or(A[i,:] != 0, A[:,i] != 0))[0])
+
+def pa(i, A):
+    """The parents of i in A.
+
+    Parameters
+    ----------
+    i : int
+        the node's index
+    A : np.array
+        the adjacency matrix of the graph, where A[i,j] != 0 => i -> j
+        and A[i,j] != 0 & A[j,i] != 0 => i - j.
+
+    Returns
+    -------
+    nodes : set of ints
+        the parent nodes
+    
+    """
+    return set(np.where(np.logical_and(A[:,i] != 0, A[i,:] == 0))[0])
+
+def ch(i, A):
+    """The children of i in A.
+
+    Parameters
+    ----------
+    A : np.array
+        the adjacency matrix of the graph, where A[i,j] != 0 => i -> j
+        and A[i,j] != 0 & A[j,i] != 0 => i - j.
+
+    Returns
+    -------
+    nodes : set of ints
+        the children nodes
+
+    """
+    return set(np.where(np.logical_and(A[i,:] != 0, A[:,i] == 0))[0])
+
 # Example graphs
 
 def eg1():
