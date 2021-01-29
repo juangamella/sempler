@@ -35,21 +35,97 @@ import unittest
 import numpy as np
 
 import sempler
-from sempler import dag_avg_deg
 
 # Tested functions
-from sempler import utils
-from sempler.utils import matrix_block, sampling_matrix, nonzero, all_but, graph_info, stable_blanket
+import sempler.utils as utils
+
+# Tests for the DAG generation
+class DAG_Tests(unittest.TestCase):
+    def test_avg_degree(self):
+        p = 1000
+        for k in range(1,5):
+            W = utils.dag_avg_deg(p, k, 1, 2)
+            av_deg = np.sum(W > 0) * 2 / p
+            self.assertEqual(len(W), p)
+            self.assertTrue(av_deg - k < 0.5)
+            self.assertTrue(utils.is_dag(W))
+
+    def test_disconnected_graph(self):
+        W = utils.dag_avg_deg(10, 0, 1, 1)
+        self.assertEqual(np.sum(W), 0)
 
 class UtilsTests(unittest.TestCase):
-
     def test_combinations(self):
         for p in range(2, 10):
             target = np.random.choice(p)
             combinations = utils.combinations(p, target)
             self.assertEqual(int(2**(p-1)), len(combinations))
             [self.assertTrue(target not in s) for s in combinations]
-    
+
+    def test_is_dag_1(self):
+        # Should be correct
+        A = np.array([[0, 0, 1, 0, 0],
+                      [0, 0, 1, 0, 0],
+                      [0, 0, 0, 1, 1],
+                      [0, 0, 0, 0, 1],
+                      [0, 0, 0, 0, 0]])
+        self.assertTrue(utils.is_dag(A))        
+
+    def test_is_dag_2(self):
+        # DAG with a cycle
+        A = np.array([[0, 0, 1, 0, 0],
+                      [0, 0, 1, 0, 0],
+                      [0, 0, 0, 1, 1],
+                      [1, 0, 0, 0, 1],
+                      [0, 0, 0, 0, 0]])
+        self.assertFalse(utils.is_dag(A))
+
+    def test_is_dag_3(self):
+        # PDAG
+        A = np.array([[0, 0, 1, 0, 0],
+                      [0, 0, 1, 0, 0],
+                      [0, 0, 0, 1, 1],
+                      [0, 0, 0, 0, 1],
+                      [0, 0, 0, 1, 0]])
+        self.assertFalse(utils.is_dag(A))
+
+    def test_topological_sort_1(self):
+        A = np.array([[0, 0, 0, 0, 0],
+                      [0, 0, 0, 0, 0],
+                      [1, 1, 0, 0, 0],
+                      [0, 0, 1, 0, 0],
+                      [0, 0, 1, 1, 0]]).T
+        order = utils.topological_ordering(A)
+        possible_orders = [[0,1,2,3,4], [1, 0, 2, 3, 4]]
+        self.assertIn(order, possible_orders)
+        
+    def test_topological_sort_2(self):
+        A = np.array([[0, 0, 0, 1, 0],
+                      [0, 0, 0, 0, 0],
+                      [1, 1, 0, 0, 0],
+                      [0, 0, 1, 0, 0],
+                      [0, 0, 1, 1, 0]]).T
+        try:
+            utils.topological_ordering(A)
+            self.fail()
+        except:
+            pass
+
+    def test_topological_sort_3(self):
+        G = 100
+        p = 30
+        for i in range(G):
+            A = utils.dag_avg_deg(p,3,1,1)
+            ordering = utils.topological_ordering(A)
+            fro,to = np.where(A != 0)
+            # Test that the ordering is correct, i.e. for every edge x
+            # -> y in the graph, x appears before in the ordering
+            for (x,y) in zip(fro,to):
+                pos_x = np.where(np.array(ordering) == x)[0][0]
+                pos_y = np.where(np.array(ordering) == y)[0][0]
+                self.assertLess(pos_x, pos_y)
+        print("Checked topological sorting for %d DAGs" % (i+1))
+            
     def test_matrix_block(self):
         M = np.array([[11, 12, 13, 14],
                       [21, 22, 23, 24],
@@ -72,7 +148,7 @@ class UtilsTests(unittest.TestCase):
         for test in tests:
             (A, B, truth) = test
             #print(A, B, truth, matrix_block(M, A, B))
-            self.assertTrue((matrix_block(M, A, B) == truth).all())
+            self.assertTrue((utils.matrix_block(M, A, B) == truth).all())
 
     def test_sampling_matrix(self):
         W = np.array([[0,0,1,0],
@@ -83,16 +159,16 @@ class UtilsTests(unittest.TestCase):
                           [0,1,0,0],
                           [1,1,1,0],
                           [1,1,1,1]])
-        self.assertTrue((truth == sampling_matrix(W)).all())
+        self.assertTrue((truth == utils.sampling_matrix(W)).all())
 
     def test_nonzero(self):
         tol = 1e-12
         A = np.array([0, 1, tol, -1, tol/2, -tol*2])
-        self.assertTrue((np.array([1,3,5]) == nonzero(A)).all())
+        self.assertTrue((np.array([1,3,5]) == utils.nonzero(A)).all())
 
     def test_all_but(self):
-        self.assertTrue([0, 1, 3, 4] == all_but(2,5))
-        self.assertTrue([0, 3, 4] == all_but([1,2],5))
+        self.assertTrue([0, 1, 3, 4] == utils.all_but(2,5))
+        self.assertTrue([0, 3, 4] == utils.all_but([1,2],5))
 
     def test_graph_info_1(self):
         W = np.array([[0., 1., 0., 0., 0., 0., 0., 0.],
@@ -137,7 +213,7 @@ class UtilsTests(unittest.TestCase):
                    {0,4,5,2,3,6}]
         for i in range(len(W)):
             #print("Testing info for node %d" %i)
-            (parents, children, poc, mb) = graph_info(i, W)
+            (parents, children, poc, mb) = utils.graph_info(i, W)
             #print(parents, children, poc, mb)
             self.assertEqual(parents, true_parents[i])
             self.assertEqual(children, true_children[i])
@@ -150,7 +226,7 @@ class UtilsTests(unittest.TestCase):
             (W, true_parents, true_mb) = graph
             for i in range(len(W)):
                 #print("%d Testing info for node %d" % (k+1,i))
-                (parents, children, poc, mb) = graph_info(i, W)
+                (parents, children, poc, mb) = utils.graph_info(i, W)
                 #print(parents, children, poc, mb)
                 self.assertEqual(parents, set(true_parents[i]))
                 self.assertEqual(mb, set(true_mb[i]))
@@ -167,4 +243,4 @@ class UtilsTests(unittest.TestCase):
         interventions = set()
         for i, var in enumerate(intervened_variables):
             interventions.update(var)
-            self.assertTrue(truth[i], stable_blanket(target, W, interventions))
+            self.assertTrue(truth[i], utils.stable_blanket(target, W, interventions))

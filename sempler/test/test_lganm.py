@@ -37,39 +37,15 @@ import numpy as np
 import networkx as nx
 
 import sempler
-from sempler.utils import sampling_matrix
-from sempler import NormalDistribution
+import sempler.utils as utils
 
-# Tested functions
-from sempler import dag_full, dag_avg_deg, LGANM
-
-# Tests for the DAG generation
-class DAG_Tests(unittest.TestCase):
-    def test_dag(self):
-        for p in np.arange(2,100,5):
-            W = dag_avg_deg(p, p/4, 0, 1)
-            G = nx.from_numpy_matrix(W, create_using = nx.DiGraph)
-            self.assertTrue(nx.is_directed_acyclic_graph(G))
-
-    def test_avg_degree(self):
-        p = 1000
-        for k in range(1,5):
-            W = dag_avg_deg(p, k, 1, 2)
-            av_deg = np.sum(W > 0) * 2 / p
-            self.assertEqual(len(W), p)
-            self.assertTrue(av_deg - k < 0.5)
-
-    def test_disconnected_graph(self):
-        W = dag_avg_deg(10, 0, 1, 1)
-        self.assertEqual(np.sum(W), 0)
-
-# Tests for the SEM generation and sampling
-class SEM_Tests(unittest.TestCase):
+# Tests for the LGANM class
+class LGANM_Tests(unittest.TestCase):
     def test_basic(self):
         # Test the initialization of an LGANM object
         p = 10
-        W = dag_avg_deg(p, p/4, 1, 1)
-        sem = LGANM(W, (1,1), (0,0))
+        W = utils.dag_avg_deg(p, p/4, 1, 1)
+        sem = sempler.LGANM(W, (0,0), (1,1))
         self.assertTrue((sem.variances == np.ones(p)).all())
         self.assertTrue((sem.means == np.zeros(p)).all())
         self.assertTrue(np.sum((sem.W == 0).astype(float) + (sem.W == 1).astype(float)), p*p)
@@ -77,29 +53,29 @@ class SEM_Tests(unittest.TestCase):
     def test_basic_1(self):
         # Test the initialization of an LGANM object
         p = 5
-        W = dag_avg_deg(p, p/4, 1, 1)
-        sem = LGANM(W, (1,1), (0,0))
+        W = utils.dag_avg_deg(p, p/4, 1, 1)
+        sem = sempler.LGANM(W, (0,0), (1,1))
         self.assertTrue((sem.variances == np.ones(p)).all())
         self.assertTrue((sem.means == np.zeros(p)).all())
-        sem = LGANM(W, np.ones(p), np.zeros(p))
+        sem = sempler.LGANM(W, np.zeros(p), np.ones(p))
         self.assertTrue((sem.variances == np.ones(p)).all())
         self.assertTrue((sem.means == np.zeros(p)).all())
         with self.assertRaises(Exception):
-            LGANM(W, (0,1,2,3,4), (0,0))
+            sempler.LGANM(W, (0,0), (0,1,2,3,4))
         with self.assertRaises(Exception):
-            LGANM(W, (0,1), (0,0,0,0,0))
+            sempler.LGANM(W, (0,0,0,0,0), (0,1))
         with self.assertRaises(Exception):
-            LGANM(W, (0,1,2,3), (0,0,0))
+            sempler.LGANM(W, (0,1,2,3), (0,0,0))
         with self.assertRaises(Exception):
-            LGANM(W, (0,1,2,3))
+            sempler.LGANM(W, (0,1,2,3))
 
     def test_memory(self):
         # Test that all arguments are copied and not simply stored by
         # reference
         variances = np.array([1,2,3])
         means = np.array([3,4,5])
-        W = np.eye(3)
-        sem = LGANM(W, variances, means)
+        W = np.array([[0,1,0],[0,0,1],[0,0,0]])
+        sem = sempler.LGANM(W, means, variances)
         # Modify and compare
         variances[0] = 0
         means[2] = 1
@@ -111,31 +87,31 @@ class SEM_Tests(unittest.TestCase):
     def test_means(self):
         # Test that means are set correctly
         p = 10
-        W = dag_avg_deg(p, p/4, 1, 1)
+        W = utils.dag_avg_deg(p, p/4, 1, 1)
         means = np.arange(p)
-        sem = LGANM(W, (0,1), means = means)
+        sem = sempler.LGANM(W, means, (0,1))
         self.assertTrue((sem.means == means).all())
 
     def test_sampling_args(self):
         variances = np.array([1,2,3])
         means = np.array([3,4,5])
         W = np.array([[0,1,1],[0,0,1],[0,0,0]])
-        sem = LGANM(W, variances, means)
+        sem = sempler.LGANM(W, means, variances)
         self.assertEqual(np.ndarray, type(sem.sample(n=1)))
         self.assertEqual(np.ndarray, type(sem.sample(n=1, shift_interventions = {})))
         self.assertEqual(np.ndarray, type(sem.sample(n=1, do_interventions = {})))
         self.assertEqual(np.ndarray, type(sem.sample(n=1, shift_interventions = None)))
         self.assertEqual(np.ndarray, type(sem.sample(n=1, do_interventions = None)))
-        self.assertEqual(NormalDistribution, type(sem.sample(n=1, population=True)))
-        self.assertEqual(NormalDistribution, type(sem.sample(population=True)))
+        self.assertEqual(sempler.NormalDistribution, type(sem.sample(n=1, population=True)))
+        self.assertEqual(sempler.NormalDistribution, type(sem.sample(population=True)))
         
     def test_sampling_1(self):
-        # Test sampling of DAG with one variable
+        # Test sampling of a DAG with one variable
         np.random.seed(42)
         p = 1
         n = round(1e6)
-        W = dag_full(p)
-        sem = LGANM(W, (1,1), (0,0))
+        W = utils.dag_full(p)
+        sem = sempler.LGANM(W, (0,0), (1,1))
         # Observational data
         truth = np.random.normal(0,1,size=(n,1))
         samples = sem.sample(n, shift_interventions = {})
@@ -155,8 +131,8 @@ class SEM_Tests(unittest.TestCase):
         # using the path method
         p = 4
         n = round(1e6)
-        W = dag_full(p)
-        sem = LGANM(W, (0.16,0.16), (0,0))
+        W = utils.dag_full(p)
+        sem = sempler.LGANM(W, (0,0), (0.16,0.16))
         np.random.seed(42)
         noise = np.random.normal([0,0,0,0],[.4, .4, .4, .4], size=(n,4))
         truth = np.zeros((n,p))
@@ -179,7 +155,7 @@ class SEM_Tests(unittest.TestCase):
                       [0, 0, 0, 0, 1, 1],
                       [0, 0, 0, 0, 0, 1],
                       [0, 0, 0, 0, 0, 0]])
-        sem = LGANM(W, (0.16,0.16), (0,0))
+        sem = sempler.LGANM(W, (0,0), (0.16,0.16))
 
         # Test observational data
         M = np.array([[1, 0, 0, 0, 0, 0],
@@ -221,7 +197,7 @@ class SEM_Tests(unittest.TestCase):
         n = round(1e6)
         variances = np.array([1,2,3])*0.1
         means = np.array([1,2,3])
-        sem = LGANM(W, variances, means)
+        sem = sempler.LGANM(W, means, variances)
         np.random.seed(42)
         # Test observational data
         # Build truth
@@ -291,7 +267,7 @@ class SEM_Tests(unittest.TestCase):
                       [0,0,0,0]])
         # Build SEM with unit weights and standard normal noise
         # variables
-        sem = LGANM(W, (1,1), (0,0))
+        sem = sempler.LGANM(W, (0,0), (1,1))
         # Observational Distribution
         distribution = sem.sample(population=True)
         true_cov = np.array([[1,0,1,1],
@@ -318,7 +294,7 @@ class SEM_Tests(unittest.TestCase):
         self.assertTrue((distribution.mean==np.array([0,1,1,1])).all())
         self.assertTrue((distribution.covariance==true_cov).all())
 
-    def test_shift_interventions_1(self):
+    def test_shift_noise_interventions_1(self):
         # Test sampling and interventions on a custom DAG, comparing
         # with results obtained via the path method
         np.random.seed(42)
@@ -330,7 +306,7 @@ class SEM_Tests(unittest.TestCase):
                       [0, 0, 0, 0, 1, 1],
                       [0, 0, 0, 0, 0, 1],
                       [0, 0, 0, 0, 0, 0]])
-        sem = LGANM(W, (0.16,0.16), (0,0))
+        sem = sempler.LGANM(W, (0,0), (0.16,0.16))
 
         # Test observational data
         M = np.array([[1, 0, 0, 0, 0, 0],
@@ -345,12 +321,17 @@ class SEM_Tests(unittest.TestCase):
         self.assertTrue(same_normal(truth, samples))
 
         # Test shift intervention on X4
-        noise = np.random.normal([0,0,0,0,0,0], [.4, .4, .4, .4, .6, .4], size=(n,p))
+        noise = np.random.normal([0,0,0,0,0,0], [.4, .4, .4, .4, .5, .4], size=(n,p))
         truth = noise @ M.T
-        samples = sem.sample(n, shift_interventions = {4: (0,0.2)})
-        print(truth, samples)
+        samples = sem.sample(n, shift_interventions = {4: (0,0.09)})
         self.assertTrue(same_normal(truth, samples))
 
+        # Test under noise intervention on X4
+        noise = np.random.normal([0,0,0,0,0,0], [.4, .4, .4, .4, 1, .4], size=(n,p))
+        truth = noise @ M.T
+        samples = sem.sample(n, noise_interventions = {4: (0,1)})
+        self.assertTrue(same_normal(truth, samples))
+        
         # Test noiseless shift intervention on X2
         noise = np.random.normal([0,0,2,0,0,0], [.4, .4, .4, .4, .4, .4], size=(n,p))
         truth = noise @ M.T
@@ -375,9 +356,9 @@ class SEM_Tests(unittest.TestCase):
                       [1, 1, 1, 1, 1, 1]])
         truth = noise @ M.T
         samples = sem.sample(n, do_interventions=do_int, shift_interventions=shift_int)
-        self.assertTrue(same_normal(truth, samples))
-        
-def same_normal(sample_a, sample_b, atol=1e-2, debug=False):
+        self.assertTrue(same_normal(truth, samples))    
+
+def same_normal(sample_a, sample_b, atol=5e-2, debug=False):
     """
     Test (crudely, by L1 dist. of means and covariances) if samples
     from two distributions come from the same Gaussian
