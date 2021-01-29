@@ -28,8 +28,6 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-import numpy as np
-
 """This module contains functions to be used in SCM assignments. They
 receive n observations of k variables in a nxk array and must either a
 scalar or a nx1 array"""
