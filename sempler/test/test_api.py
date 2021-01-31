@@ -28,9 +28,23 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-"""This module contains functions to be used in SCM assignments. They
-receive n observations of k variables in a nxk array and must either a
-scalar or a nx1 array"""
+#---------------------------------------------------------------------
+# Unit testing for module sampling.py
 
-def null(*args):
-    return 0
+import unittest
+import numpy as np
+
+import sempler
+import sempler.noise
+
+# Tests for the DAG generation
+class ANM_Tests(unittest.TestCase):
+        
+    def test_constructor(self):
+        # Should raise exception for graph with cycle
+        A = np.array([[0,1,0],
+                      [0,0,1],
+                      [1,0,0]])
+        functions = [lambda x: x, lambda x: x, lambda x: x]
+        
+        

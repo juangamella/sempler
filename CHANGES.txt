@@ -1,4 +1,22 @@
-v0.1.?, 2020-05-14 -- Can pass empty dict as {shift,do}_interventions parameter and will have the same effect as not passing anything or passing None
+v0.2.0, 2020-01-31
+-- Can pass empty dict as {shift,do}_interventions parameter and will have the same effect as not passing anything or passing None
+-- Refactored matrix_block function
+-- Fixed license and project URL in setup.py
+-- Set a markdown readme for PyPi
+-- Major changes in the readme
+-- New sphinx documentation and doctests
+-- Updated imports in setup.py, made dependency requirements more specific
+-- The init of NormalDistribution can be asked to check that the covariance matrix is positive definite.
+-- The regression method in NormalDistribution now uses np.linalg.solve to find the coefficients
+-- ANM.sample, LGANM.sample now accept noise_interventions.
+-- New module sempler.generators
+-- New sphinx documentation and doctests
+-- API changes:
+   -- sempler.dag_avg_dev and dag_full have been moved to sempler.generators
+   -- ANM.sample now requires the sample size to be specified
+   -- The methods in NormalDistribution throw new exceptions
+   -- NormalDistribution.equal now has optional arguments rtol and atol instead of tol.
+   -- The LGANM constructor is now LGANM(W, means, variances) instead of LGANM(W, variances, means)
 v0.1.3, 2020-09-28 -- Fixed issues 1,2,3. Arrows now appear when plotting acyclic graphs.
 v0.1.2, 2020-04-24 -- Updated READMEs, specified networkx dependency to be above 2.2
 v0.1.1, 2020-04-24 -- Added missing dependencies to setup.py

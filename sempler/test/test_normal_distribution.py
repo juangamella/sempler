@@ -1,4 +1,4 @@
-# Copyright 2019 Juan Luis Gamella Martin
+# Copyright 2021 Juan L Gamella
 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -89,10 +89,13 @@ class NormalDistributionTests(unittest.TestCase):
         self.assertTrue(dist_a.equal(dist_b))
         # Conditioning 2
         dist_a = dist.conditional(0, [], [])
-        dist_b = dist.conditional(0, [], [1, 2])
+        try:
+            dist.conditional(0, [], [1, 2])
+            self.fail("Exception should have been raised")
+        except ValueError as e:
+            print("OK:",e)
         dist_c = dist.marginal(0)
-        self.assertTrue(dist_a.equal(dist_b))
-        self.assertTrue(dist_b.equal(dist_c))
+        self.assertTrue(dist_a.equal(dist_c))
         
     def test_marginalization(self):
         # Test marginalization logic
