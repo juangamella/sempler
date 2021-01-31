@@ -44,7 +44,7 @@ class LGANM_Tests(unittest.TestCase):
     def test_basic(self):
         # Test the initialization of an LGANM object
         p = 10
-        W = utils.dag_avg_deg(p, p/4, 1, 1)
+        W = sempler.generators.dag_avg_deg(p, p/4, 1, 1)
         sem = sempler.LGANM(W, (0,0), (1,1))
         self.assertTrue((sem.variances == np.ones(p)).all())
         self.assertTrue((sem.means == np.zeros(p)).all())
@@ -53,7 +53,7 @@ class LGANM_Tests(unittest.TestCase):
     def test_basic_1(self):
         # Test the initialization of an LGANM object
         p = 5
-        W = utils.dag_avg_deg(p, p/4, 1, 1)
+        W = sempler.generators.dag_avg_deg(p, p/4, 1, 1)
         sem = sempler.LGANM(W, (0,0), (1,1))
         self.assertTrue((sem.variances == np.ones(p)).all())
         self.assertTrue((sem.means == np.zeros(p)).all())
@@ -87,7 +87,7 @@ class LGANM_Tests(unittest.TestCase):
     def test_means(self):
         # Test that means are set correctly
         p = 10
-        W = utils.dag_avg_deg(p, p/4, 1, 1)
+        W = sempler.generators.dag_avg_deg(p, p/4, 1, 1)
         means = np.arange(p)
         sem = sempler.LGANM(W, means, (0,1))
         self.assertTrue((sem.means == means).all())
@@ -110,7 +110,7 @@ class LGANM_Tests(unittest.TestCase):
         np.random.seed(42)
         p = 1
         n = round(1e6)
-        W = utils.dag_full(p)
+        W = sempler.generators.dag_full(p)
         sem = sempler.LGANM(W, (0,0), (1,1))
         # Observational data
         truth = np.random.normal(0,1,size=(n,1))
@@ -131,7 +131,7 @@ class LGANM_Tests(unittest.TestCase):
         # using the path method
         p = 4
         n = round(1e6)
-        W = utils.dag_full(p)
+        W = np.triu(np.ones((p,p)),k=1)
         sem = sempler.LGANM(W, (0,0), (0.16,0.16))
         np.random.seed(42)
         noise = np.random.normal([0,0,0,0],[.4, .4, .4, .4], size=(n,4))

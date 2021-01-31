@@ -35,24 +35,10 @@ import unittest
 import numpy as np
 
 import sempler
+import sempler.generators
 
 # Tested functions
 import sempler.utils as utils
-
-# Tests for the DAG generation
-class DAG_Tests(unittest.TestCase):
-    def test_avg_degree(self):
-        p = 1000
-        for k in range(1,5):
-            W = utils.dag_avg_deg(p, k, 1, 2)
-            av_deg = np.sum(W > 0) * 2 / p
-            self.assertEqual(len(W), p)
-            self.assertTrue(av_deg - k < 0.5)
-            self.assertTrue(utils.is_dag(W))
-
-    def test_disconnected_graph(self):
-        W = utils.dag_avg_deg(10, 0, 1, 1)
-        self.assertEqual(np.sum(W), 0)
 
 class UtilsTests(unittest.TestCase):
     def test_combinations(self):
@@ -115,7 +101,7 @@ class UtilsTests(unittest.TestCase):
         G = 100
         p = 30
         for i in range(G):
-            A = utils.dag_avg_deg(p,3,1,1)
+            A = sempler.generators.dag_avg_deg(p,3,1,1)
             ordering = utils.topological_ordering(A)
             fro,to = np.where(A != 0)
             # Test that the ordering is correct, i.e. for every edge x
