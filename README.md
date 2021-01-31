@@ -8,8 +8,6 @@ You can clone this repo or install using pip:
 pip install sempler
 ```
 
-### Versioning
-
 Sempler is still at its infancy and its API is subject to change. Non backward-compatible changes to the API are reflected by a change to the minor or major version number,
 
 > e.g. *code written using sempler==0.1.2 will run with sempler==0.1.3, but may not run with sempler==0.2.0.*
