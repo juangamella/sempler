@@ -1,17 +1,31 @@
 Welcome to sempler's documentation!
 ===================================
 
-This is a test
-==============
+Sempler allows you to generate observational and interventional data from general structural causal models.
 
-Blah blah.::
+Two classes are defined for this purpose.
 
-    print('test')
-    >>> test
+- :class:`sempler.ANM` is for general (acyclic) additive noise SCMs. Any assignment function is possible, as are the distributions of the noise terms.
+- :class:`sempler.LGANM` is for linear Gaussian SCMs. While this is also possible with :class:`sempler.ANM`, this class simplifies the interface and offers the additional functionality of sampling "in the population setting", i.e. by returning a symbolic gaussian distribution (see :func:`sempler.LGANM.sample` and :class:`sempler.NormalDistribution`).
 
-This is a section
-^^^^^^^^^^^^^^^^^
-    
+To allow for random generation of SCMs, the module :class:`sempler.generators` contains functions to sample random DAGs, which can then be passed to the constructors of :class:`sempler.ANM` and :class:`sempler.LGANM`.
+  
+Feedback
+--------
+
+Feedback and (constructive) criticism are most welcome! You can add an issue in sempler's `repository <https://github.com/juangamella/sempler>`__ or send me an `email <mailto:juan.gamella@stat.math.ethz.ch>`__.
+
+License
+-------
+
+Sempler is open-source and shared under a BSD 3-Clause License. You can find the source code in the `GitHub repository <https://github.com/juangamella/sempler>`__.
+
+About the Name
+--------------
+
+While I prefer the term *structural causal models*, these are sometimes referred to in the literature as *structural equation models*, or SEMs. The name sempler comes from *SEM sampler*.
+
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
@@ -19,7 +33,7 @@ This is a section
    anm
    lganm
    normal_distribution
-   utils
+   generators
    
 
 

@@ -15,6 +15,7 @@ doctests:
 	PYTHONPATH=./ python sempler/anm.py
 	PYTHONPATH=./ python sempler/lganm.py
 	PYTHONPATH=./ python sempler/normal_distribution.py
+	PYTHONPATH=./ python sempler/generators.py
 
 # Run the example scripts in the README
 examples:
