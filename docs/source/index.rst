@@ -10,16 +10,24 @@ Two classes are defined for this purpose.
 
 To allow for random generation of SCMs and interventional distributions, the module :class:`sempler.generators` contains functions to sample random DAGs and intervention targets.
   
-Feedback
---------
-
-Feedback is most welcome! You can add an issue in sempler's `repository <https://github.com/juangamella/sempler>`__ or send an `email <mailto:juan.gamella@stat.math.ethz.ch>`__.
-
 License
 -------
 
 Sempler is open-source and shared under a BSD 3-Clause License. You can find the source code in the `GitHub repository <https://github.com/juangamella/sempler>`__.
 
+Versioning
+----------
+
+Sempler is still at its infancy and its API is subject to change. Non backward-compatible changes to the API are reflected by a change to the minor or major version number, e.g.
+
+
+    *code written using sempler==0.1.2 will run with sempler==0.1.3, but may not run with sempler==0.2.0.*
+
+Feedback
+--------
+
+Feedback is most welcome! You can add an issue in sempler's `repository <https://github.com/juangamella/sempler>`__ or send an `email <mailto:juan.gamella@stat.math.ethz.ch>`__.
+    
 About the Name
 --------------
 
