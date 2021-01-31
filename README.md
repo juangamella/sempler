@@ -29,4 +29,4 @@ You can find the docs at https://sempler.readthedocs.io/en/latest/.
   
 ## Feedback
 
-Feedback is most welcome! You can add an issue  or send an [email](mailto:juan.gamella@stat.math.ethz.ch>)
+Feedback is most welcome! You can add an issue  or send an [email](mailto:juan.gamella@stat.math.ethz.ch>).
