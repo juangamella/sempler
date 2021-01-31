@@ -115,7 +115,7 @@ class LGANM_Tests(unittest.TestCase):
         # Observational data
         truth = np.random.normal(0,1,size=(n,1))
         samples = sem.sample(n, shift_interventions = {})
-        self.assertTrue(same_normal(truth, samples, atol=1e-1))
+        self.assertTrue(utils.same_normal(truth, samples, atol=1e-1))
         # Under do intervention
         truth = np.ones((n,1))
         samples = sem.sample(n, do_interventions = {0: 1})
@@ -123,7 +123,7 @@ class LGANM_Tests(unittest.TestCase):
         # Under noise intervention
         truth = np.random.normal(1,2,size=(n,1))
         samples = sem.sample(n, do_interventions = {0: (1, 4)})
-        self.assertTrue(same_normal(truth, samples, atol=1e-1))
+        self.assertTrue(utils.same_normal(truth, samples, atol=1e-1))
 
     def test_sampling_2(self):
         # Test that the distribution of a 4 variable DAG with upper
@@ -141,7 +141,7 @@ class LGANM_Tests(unittest.TestCase):
         truth[:,2] = 2*noise[:,0] + noise[:,1] + noise[:,2]
         truth[:,3] = 4*noise[:,0] + 2*noise[:,1] + noise[:,2] + noise[:,3]
         samples = sem.sample(n)
-        self.assertTrue(same_normal(truth, samples))
+        self.assertTrue(utils.same_normal(truth, samples))
         
     def test_interventions_1(self):
         # Test sampling and interventions on a custom DAG, comparing
@@ -167,13 +167,13 @@ class LGANM_Tests(unittest.TestCase):
         noise = np.random.normal(np.zeros(p), np.ones(p)*0.4, size=(n,p))
         truth = noise @ M.T
         samples = sem.sample(n)
-        self.assertTrue(same_normal(truth, samples))
+        self.assertTrue(utils.same_normal(truth, samples))
         
         # Test under do-interventions on X1
         noise = np.random.normal([2.1,0,0,0,0,0], [0,.4, .4, .4, .4, .4], size=(n,p))
         truth = noise @ M.T
         samples = sem.sample(n, do_interventions = {0: 2.1})
-        self.assertTrue(same_normal(truth, samples))
+        self.assertTrue(utils.same_normal(truth, samples))
         
         # Test under do-intervention on X1 and noise interventions X2 and X5
         do_int = {0: 2, 1: (2, 0.25), 4: (1, 0.25)}
@@ -186,7 +186,7 @@ class LGANM_Tests(unittest.TestCase):
                       [1, 1, 1, 1, 1, 1]])
         truth = noise @ M.T
         samples = sem.sample(n, do_interventions=do_int)
-        self.assertTrue(same_normal(truth, samples))
+        self.assertTrue(utils.same_normal(truth, samples))
 
     def test_interventions_2(self):
         # Test that the means and variances of variables in the joint
@@ -207,7 +207,7 @@ class LGANM_Tests(unittest.TestCase):
         truth[:,1] = truth[:,0]*W[0,1] + noise[:,1]
         truth[:,2] = truth[:,0]*W[0,2] + truth[:,1]*W[1,2] + noise[:,2]
         samples = sem.sample(n)
-        self.assertTrue(same_normal(truth, samples))
+        self.assertTrue(utils.same_normal(truth, samples))
         # Test that variances/means are as expected
         true_vars, true_means = np.zeros(3), np.zeros(3)
         true_vars[0] = variances[0]
@@ -227,7 +227,7 @@ class LGANM_Tests(unittest.TestCase):
         truth[:,1] = noise[:,1]
         truth[:,2] = truth[:,0]*W[0,2] + truth[:,1]*W[1,2] + noise[:,2]
         samples = sem.sample(n, do_interventions = {1: (0,0.1)})
-        self.assertTrue(same_normal(truth, samples))
+        self.assertTrue(utils.same_normal(truth, samples))
         # Test that variances/means are as expected
         true_vars, true_means = np.zeros(3), np.zeros(3)
         true_vars[0] = variances[0]
@@ -247,7 +247,7 @@ class LGANM_Tests(unittest.TestCase):
         truth[:,1] = truth[:,0]*W[0,1] + noise[:,1]
         truth[:,2] = truth[:,0]*W[0,2] + truth[:,1]*W[1,2] + noise[:,2]
         samples = sem.sample(n, do_interventions = {0: 0})
-        self.assertTrue(same_normal(truth, samples))
+        self.assertTrue(utils.same_normal(truth, samples))
         # Test that variances/means are as expected
         true_vars, true_means = np.zeros(3), np.zeros(3)
         true_vars[0] = variances[0]
@@ -318,31 +318,31 @@ class LGANM_Tests(unittest.TestCase):
         noise = np.random.normal(np.zeros(p), np.ones(p)*0.4, size=(n,p))
         truth = noise @ M.T
         samples = sem.sample(n)
-        self.assertTrue(same_normal(truth, samples))
+        self.assertTrue(utils.same_normal(truth, samples))
 
         # Test shift intervention on X4
         noise = np.random.normal([0,0,0,0,0,0], [.4, .4, .4, .4, .5, .4], size=(n,p))
         truth = noise @ M.T
         samples = sem.sample(n, shift_interventions = {4: (0,0.09)})
-        self.assertTrue(same_normal(truth, samples))
+        self.assertTrue(utils.same_normal(truth, samples))
 
         # Test under noise intervention on X4
         noise = np.random.normal([0,0,0,0,0,0], [.4, .4, .4, .4, 1, .4], size=(n,p))
         truth = noise @ M.T
         samples = sem.sample(n, noise_interventions = {4: (0,1)})
-        self.assertTrue(same_normal(truth, samples))
+        self.assertTrue(utils.same_normal(truth, samples))
         
         # Test noiseless shift intervention on X2
         noise = np.random.normal([0,0,2,0,0,0], [.4, .4, .4, .4, .4, .4], size=(n,p))
         truth = noise @ M.T
         samples = sem.sample(n, shift_interventions = {2: 2})
-        self.assertTrue(same_normal(truth, samples))
+        self.assertTrue(utils.same_normal(truth, samples))
         
         # Test that do-interventions on X0 override shift interventions on X0
         noise = np.random.normal([2.1,0,0,0,0,0], [0,.4, .4, .4, .4, .4], size=(n,p))
         truth = noise @ M.T
         samples = sem.sample(n, do_interventions = {0: 2.1}, shift_interventions = {0: (1,2)})
-        self.assertTrue(same_normal(truth, samples))
+        self.assertTrue(utils.same_normal(truth, samples))
         
         # Test under shift-intervention on X0 and do interventions X1 and X4
         shift_int = {0: (0,0.2)}
@@ -356,18 +356,6 @@ class LGANM_Tests(unittest.TestCase):
                       [1, 1, 1, 1, 1, 1]])
         truth = noise @ M.T
         samples = sem.sample(n, do_interventions=do_int, shift_interventions=shift_int)
-        self.assertTrue(same_normal(truth, samples))    
-
-def same_normal(sample_a, sample_b, atol=5e-2, debug=False):
-    """
-    Test (crudely, by L1 dist. of means and covariances) if samples
-    from two distributions come from the same Gaussian
-    """
-    mean_a, mean_b = np.mean(sample_a, axis=0), np.mean(sample_b, axis=0)
-    cov_a, cov_b = np.cov(sample_a, rowvar=False), np.cov(sample_b, rowvar=False)
-    print("MEANS\n%s\n%s\n\nCOVARIANCES\n%s\n%s" % (mean_a, mean_b, cov_a, cov_b)) if debug else None
-    means = np.allclose(mean_a, mean_b, atol=atol)
-    covariances = np.allclose(cov_a, cov_b, atol=atol)
-    return means and covariances
+        self.assertTrue(utils.same_normal(truth, samples))    
 
 

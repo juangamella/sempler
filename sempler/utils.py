@@ -301,6 +301,18 @@ def ch(i, A):
     """
     return set(np.where(np.logical_and(A[i,:] != 0, A[:,i] == 0))[0])
 
+def same_normal(sample_a, sample_b, atol=5e-2, debug=False):
+    """
+    Test (crudely, by L1 dist. of means and covariances) if samples
+    from two distributions come from the same Gaussian
+    """
+    mean_a, mean_b = np.mean(sample_a, axis=0), np.mean(sample_b, axis=0)
+    cov_a, cov_b = np.cov(sample_a, rowvar=False), np.cov(sample_b, rowvar=False)
+    print("MEANS\n%s\n%s\n\nCOVARIANCES\n%s\n%s" % (mean_a, mean_b, cov_a, cov_b)) if debug else None
+    means = np.allclose(mean_a, mean_b, atol=atol)
+    covariances = np.allclose(cov_a, cov_b, atol=atol)
+    return means and covariances
+
 # Example graphs
 
 def eg1():

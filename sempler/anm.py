@@ -52,7 +52,8 @@ class ANM:
         != 0` if `i` appears in the assignment of `j` (i.e. `i -> j`).
     assignments : list of (function or None)
         A list of p functions representing the functional assignments
-        of each variable. Each function must take as many arguments as
+        of each variable. Each function must take a vector of
+        observations where each column corresponds to a parent as
         specified by the adjacency matrix `A`, or be `None` or
         `sempler.functions.null` if the variable has no parents.
     noise_distributions : list of function
@@ -186,7 +187,7 @@ class ANM:
                 X[:,i] = do_interventions[i](n)
             # Otherwise maintain dependence on parents
             else:
-                assignment = np.transpose(self.assignments[i](X[:, self.A[:,i] == 1]))
+                assignment = np.transpose(self.assignments[i](X[:, self.A[:,i] != 0]))
                 # Shift-intervention: add noise from given distribution
                 if i in shift_interventions:
                     noise = self.noise_distributions[i](n) + shift_interventions[i](n)

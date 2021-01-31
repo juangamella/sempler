@@ -167,6 +167,85 @@ def dag_full(p, w_min=1, w_max=1, return_ordering=False, random_state=None):
     else:
         return W[permutation, :][:, permutation]
 
+def intervention_targets(p, K, size, random_state=None):
+    """Sample a set of intervention targets.
+
+    Parameters
+    ----------
+    p : int
+        The number of variables, i.e. targets will be sampled from
+        `[0,p-1]`.
+    K : int
+        The total number of interventions.
+    size : int or tuple
+        Specifies the size of each intervention, i.e. the number of
+        targets / intervention. If a two-element tuple, the number of
+        targets is sampled uniformly at random from `[size[0],
+        size[1]]`.
+    random_state : int or None
+        To set the random state for reproducibility.
+
+    Returns
+    -------
+    interventions : list of list of int
+        The sampled intervention targets.
+
+    Raises
+    ------
+    ValueError :
+        If the size of each intervention (i.e. number of targets) is
+        larger than the actual number of variables, or if the tuple
+        passed as size does not have length 2.
+
+    Examples
+    --------
+
+    Generating a set of single-variable interventions:
+    
+    >>> from sempler.generators import intervention_targets
+    >>> intervention_targets(10, 5, 1, random_state=42)
+    [[8], [0], [9], [1], [1]]
+
+    Generating a set of interventions with random number of targets:
+    >>> intervention_targets(10, 5, (1,3), random_state=42)
+    [[9, 7, 0], [0], [5, 2, 7], [1, 5, 4], [8]]
+
+    An exception is raised if `size > p`:
+
+    >>> intervention_targets(4, 5, 5)
+    Traceback (most recent call last):
+      ...
+    ValueError: The intervention size cannot be larger than the number of variables.
+
+    Or if `size` is a tuple with size different than two:
+
+    >>> intervention_targets(4, 5, (0,1,2))
+    Traceback (most recent call last):
+      ...
+    ValueError: The intervention size must be a positive integer or two-element tuple.
+
+    """
+    np.random.seed(random_state) if random_state is not None else None
+    # Build intervention sizes
+    if isinstance(size, tuple) and len(size) == 2:
+        max_size = size[1]
+        sizes = np.random.randint(size[0],size[1]+1,K)
+    elif isinstance(size, tuple):
+        raise ValueError("The intervention size must be a positive integer or two-element tuple.")
+    else:
+        max_size = size
+        sizes = [size] * K
+    # Check max size condition
+    if max_size > p:
+        raise ValueError("The intervention size cannot be larger than the number of variables.")
+    # Sample the targets
+    interventions = []
+    targets = list(range(p))
+    for i,k in enumerate(range(K)):
+        intervention = list(np.random.choice(list(targets), size=sizes[i], replace=False))
+        interventions.append(intervention)
+    return interventions
+
 # To run the method's doctests
 if __name__ == '__main__':
     import doctest

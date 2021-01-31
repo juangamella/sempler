@@ -38,7 +38,7 @@ import sempler.generators
 import sempler.utils as utils
 
 # Tests for the DAG generation
-class DAG_Tests(unittest.TestCase):
+class GeneratorTests(unittest.TestCase):
     def test_avg_degree(self):
         p = 1000
         for k in range(1,5):
@@ -56,3 +56,21 @@ class DAG_Tests(unittest.TestCase):
         for p in range(10):
             W = sempler.generators.dag_full(p)
             self.assertEqual(p*(p-1)/2, W.sum())
+
+    def test_intervention_targets(self):
+        possible_targets = set(range(10))
+        # Test random-sized interventions
+        interventions = sempler.generators.intervention_targets(10, 100, (0,3))
+        for intervention in interventions:
+            self.assertLessEqual(len(intervention), 3)
+            self.assertGreaterEqual(len(intervention), 0)
+            self.assertEqual(len(intervention), len(set(intervention) & possible_targets))
+        # Test empty-sized interventions
+        interventions = sempler.generators.intervention_targets(10, 100, (0,0))
+        for intervention in interventions:
+            self.assertEqual(len(intervention), 0)
+        # Test single-target interventions
+        interventions = sempler.generators.intervention_targets(10, 100, 1)
+        for intervention in interventions:
+            self.assertEqual(len(intervention), 1)
+            self.assertEqual(len(intervention), len(set(intervention) & possible_targets))

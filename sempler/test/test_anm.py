@@ -36,6 +36,8 @@ import numpy as np
 
 import sempler
 import sempler.noise
+import sempler.utils
+import sempler.generators
 
 # Tests that the interface behaves as expected
 class api_Tests(unittest.TestCase):
@@ -90,6 +92,37 @@ class api_Tests(unittest.TestCase):
         anm.sample(10, noise_interventions = {0: sempler.noise.uniform()})
         anm.sample(10, shift_interventions = {0: sempler.noise.uniform()})
 
+class sampling_Tests(unittest.TestCase):
 
-
-        
+    def test_gaussian_sampling(self):
+        # Test 100 interventions
+        K = 50
+        W = np.array([[0, 0, 0, 0.2, 0],
+                      [0, 0, 0.4, 0, 0],
+                      [0, 0, 0, 0.3, 0],
+                      [0, 0, 0, 0, 0.5],
+                      [0, 0, 0, 0, 0  ]])
+        lganm = sempler.LGANM(W, (1,2), (1,2))
+        noise_distributions = [sempler.noise.normal(m,v) for (m,v) in zip(lganm.means, lganm.variances)]
+        assignments = [None, None, lambda x: .4 * x, lambda x: .2*x[:,0] + .3 * x[:,1], lambda x: .5*x]
+        anm = sempler.ANM(W, assignments, noise_distributions)
+        interventions = sempler.generators.intervention_targets(lganm.p, K, (0,3))
+        for targets in interventions:
+            print(targets)
+            means, variances = np.random.uniform(0,5,len(targets)), np.random.uniform(2,3,len(targets))
+            interventions_lganm = dict((t, (m, v)) for (t,m,v) in zip(targets, means, variances))
+            interventions_anm = dict((t, sempler.noise.normal(m,v)) for (t,m,v) in zip(targets, means, variances))
+            # Sample each SCMs
+            # TODO: Combine different interventions in one
+            n = round(1e6)
+            if len(targets) <= 1:
+                samples_anm = anm.sample(n, do_interventions = interventions_anm)
+                samples_lganm = lganm.sample(n, do_interventions = interventions_lganm)
+            elif len(targets) == 2:
+                samples_anm = anm.sample(n, shift_interventions = interventions_anm)
+                samples_lganm = lganm.sample(n, shift_interventions = interventions_lganm)
+            elif len(targets) == 3:
+                samples_anm = anm.sample(n, noise_interventions = interventions_anm)
+                samples_lganm = lganm.sample(n, noise_interventions = interventions_lganm)
+            # Check that the distribution is the same
+            self.assertTrue(sempler.utils.same_normal(samples_anm, samples_lganm, debug=False))
