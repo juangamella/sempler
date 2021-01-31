@@ -1,7 +1,7 @@
 sempler.NormalDistribution
 ==========================
 
-The `NormalDistribution` class represents a normal distribution through its covariance and mean vector. The class defines methods for
+The `NormalDistribution` class represents a normal distribution through its mean and covariance. The class defines methods for
 
 - conditioning: :func:`~sempler.NormalDistribution.conditional`
 - marginalization: :func:`~sempler.NormalDistribution.marginal`

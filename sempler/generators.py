@@ -207,6 +207,7 @@ def intervention_targets(p, K, size, random_state=None):
     [[8], [0], [9], [1], [1]]
 
     Generating a set of interventions with random number of targets:
+
     >>> intervention_targets(10, 5, (1,3), random_state=42)
     [[9, 7, 0], [0], [5, 2, 7], [1, 5, 4], [8]]
 
