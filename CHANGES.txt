@@ -1,4 +1,4 @@
-v0.2.0, 2020-01-26
+v0.2.0, 2020-01-31
 -- Can pass empty dict as {shift,do}_interventions parameter and will have the same effect as not passing anything or passing None
 -- Refactored matrix_block function
 -- Fixed license and project URL in setup.py
@@ -8,7 +8,11 @@ v0.2.0, 2020-01-26
 -- Updated imports in setup.py, made dependency requirements more specific
 -- The init of NormalDistribution can be asked to check that the covariance matrix is positive definite.
 -- The regression method in NormalDistribution now uses np.linalg.solve to find the coefficients
+-- ANM.sample, LGANM.sample now accept noise_interventions.
+-- New module sempler.generators
+-- New sphinx documentation and doctests
 -- API changes:
+   -- sempler.dag_avg_dev and dag_full have been moved to sempler.generators
    -- ANM.sample now requires the sample size to be specified
    -- The methods in NormalDistribution throw new exceptions
    -- NormalDistribution.equal now has optional arguments rtol and atol instead of tol.
