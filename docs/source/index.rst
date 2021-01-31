@@ -38,6 +38,7 @@ About the Name
    :maxdepth: 2
    :caption: Contents:
 
+   self
    anm
    lganm
    normal_distribution
