@@ -100,9 +100,9 @@ class NormalDistribution():
     
     Attributes
     ----------
-    mean : numpy.array
+    mean : numpy.ndarray
         The marginal means of the variables.
-    covariance : numpy.array
+    covariance : numpy.ndarray
         The covariance matrix of the distribution.
     p : int
         The number of variables.
@@ -277,7 +277,7 @@ class NormalDistribution():
         
         Returns
         -------
-        coefs : numpy.array
+        coefs : numpy.ndarray
             A p-sized array containing the estimated coefficients in
             the indices in Xs and 0s elsewhere.
         intercept : float
