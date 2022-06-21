@@ -39,11 +39,13 @@ from copy import deepcopy
 import sempler.utils as utils
 import sempler.functions as functions
 
-#---------------------------------------------------------------------
+# ---------------------------------------------------------------------
 # ANM class
+
+
 class ANM:
     """Class to represent a general (acyclic) additive noise model.
-        
+
     Parameters
     ----------
     A : numpy.ndarray
@@ -116,19 +118,19 @@ class ANM:
         of each variable (see sempler.noise).
 
     """
-    
+
     def __init__(self, A, assignments, noise_distributions):
         self.ordering = utils.topological_ordering(A)
         self.p = len(A)
         self.A = deepcopy(A)
         self.assignments = [functions.null if fun is None else deepcopy(fun) for fun in assignments]
         self.noise_distributions = deepcopy(noise_distributions)
-            
-    def sample(self, n, do_interventions = {}, shift_interventions = {}, noise_interventions = {}, random_state = None):
+
+    def sample(self, n, do_interventions={}, shift_interventions={}, noise_interventions={}, random_state=None):
         """Generates i.i.d. observations from the ANM, under the given do, shift or
         noise interventions. If no interventions are given, sample from the observational
         distribution.
-        
+
         Parameters
         ----------
         n : int
@@ -156,7 +158,7 @@ class ANM:
         numpy.ndarray
             An array containing the sample, with each column
             corresponding to a variable.
-        
+
         Examples
         --------
 
@@ -184,10 +186,10 @@ class ANM:
             # If i is do intervened, sample from the corresponding
             # interventional distribution
             if i in do_interventions:
-                X[:,i] = do_interventions[i](n)
+                X[:, i] = do_interventions[i](n)
             # Otherwise maintain dependence on parents
             else:
-                assignment = np.transpose(self.assignments[i](X[:, self.A[:,i] != 0]))
+                assignment = np.transpose(self.assignments[i](X[:, self.A[:, i] != 0]))
                 # Shift-intervention: add noise from given distribution
                 if i in shift_interventions:
                     noise = self.noise_distributions[i](n) + shift_interventions[i](n)
@@ -197,7 +199,7 @@ class ANM:
                 # No intervention: sample noise from original distribution
                 else:
                     noise = self.noise_distributions[i](n)
-                X[:,i] = assignment + noise
+                X[:, i] = assignment + noise
         return X
 
 
@@ -211,7 +213,7 @@ if __name__ == '__main__':
                   [0, 0, 0, 1, 0],
                   [0, 0, 0, 0, 1],
                   [0, 0, 0, 0, 0]])
-    noise_distributions = [sempler.noise.normal(0,1)] * 5
-    assignments = [None, None, np.sin, lambda x: np.exp(x[:,0]) + 2*x[:,1], lambda x: 2*x]
+    noise_distributions = [sempler.noise.normal(0, 1)] * 5
+    assignments = [None, None, np.sin, lambda x: np.exp(x[:, 0]) + 2 * x[:, 1], lambda x: 2 * x]
     anm = ANM(A, assignments, noise_distributions)
     doctest.testmod(extraglobs={'anm': anm}, verbose=True)

@@ -1,4 +1,11 @@
-v0.2.0, 2020-01-31
+v0.2.1, 2022-06-21
+-- Allow fixing the random state when calling LGANM.sample
+-- Applied PEP8 standards to all code
+-- Improved version of utils.plot_graph; can now plot edge weights and assign labels to nodes
+-- Added new function utils.plot_matrix to visualize matrices
+-- Added new functions utils.argmin and utils.argmax to return the index of the max/min elements of an array
+-- Removed calls to deprecated networkx.from_numpy_matrix
+v0.2.0, 2021-01-31
 -- Can pass empty dict as {shift,do}_interventions parameter and will have the same effect as not passing anything or passing None
 -- Refactored matrix_block function
 -- Fixed license and project URL in setup.py

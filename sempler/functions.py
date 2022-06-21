@@ -32,5 +32,6 @@
 receive n observations of k variables in a nxk array and must either a
 scalar or a nx1 array"""
 
+
 def null(*args):
     return 0
