@@ -189,11 +189,27 @@ def topological_ordering(A):
         return ordering
 
 
-def plot_graph(W, block=False):
+def edge_weights(W):
+    """Return the weights of all the edges of W in a dictionary, i.e. with
+    keys (i,j) for values W[i,j] when W[i,j] != 0."""
+    # TODO: Test
+    fro, to = np.where(W != 0)
+    edges = list(zip(fro, to))
+    weights = [W[i, j] for i, j in edges]
+    edge_weights = dict(zip(edges, weights))
+    return edge_weights
+
+
+def plot_graph(W, labels=None, weights=False, block=False):
+    """Plot a graph with weight matrix W."""
+    # TODO: Move to sempler
     G = nx.from_numpy_matrix(W, create_using=nx.DiGraph)
     pos = nx.drawing.layout.shell_layout(G, scale=0.5)
     p = len(W)
-    node_labels = dict(zip(np.arange(p), map(lambda i: "$X_{%d}$" % i, range(p))))
+    if labels is None:
+        node_labels = dict(zip(np.arange(p), map(lambda i: "$X_{%d}$" % i, range(p))))
+    else:
+        node_labels = dict(zip(np.arange(p), labels))
     # Plot
     fig = plt.figure()
     params = {'node_color': 'white',
@@ -206,6 +222,10 @@ def plot_graph(W, block=False):
               'min_target_margin': 10,
               'labels': node_labels}
     nx.draw(G, pos, **params)
+    # Edge weights
+    if weights:
+        formatted = dict((e, "%0.3f" % w) for (e, w) in edge_weights(W).items())
+        nx.draw_networkx_edge_labels(G, pos, formatted, font_color='red')
     fig.set_facecolor("white")
     plt.show(block=block)
 
