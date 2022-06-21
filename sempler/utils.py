@@ -37,6 +37,32 @@ import matplotlib.pyplot as plt
 import itertools
 
 
+def argmin(array):
+    """Return the index of the minimum element of an array.
+
+    Examples
+    --------
+    >>> _argmin(np.array([1,-1,2,3]))
+    (1,)
+    >>> _argmin(np.array([[0,1],[-1,1]]))
+    (1, 0)
+    """
+    return np.unravel_index(np.argmin(array), array.shape)
+
+
+def argmax(array):
+    """Return the index of the minimum element of an array.
+
+    Examples
+    --------
+    >>> _argmin(np.array([1,-1,2,3]))
+    (3,)
+    >>> _argmin(np.array([[0,1],[2,1]]))
+    (1, 0)
+    """
+    return np.unravel_index(np.argmax(array), array.shape)
+
+
 def matrix_block(M, rows, cols):
     """
     Select a block of a matrix given by the row and column indices
@@ -79,7 +105,7 @@ def graph_info(i, W, interventions=None):
     """Returns the parents, children, parents of children and markov
     blanket of variable i in DAG W, using the graph structure
     """
-    G = nx.from_numpy_matrix(W, create_using=nx.DiGraph)
+    G = nx.from_numpy_array(W, create_using=nx.DiGraph)
     parents = set(G.predecessors(i))
     children = set(G.successors(i))
     parents_of_children = set()
@@ -93,7 +119,7 @@ def graph_info(i, W, interventions=None):
 
 def stable_blanket(i, W, interventions=set()):
     """Return the stable blanket using the graph structure"""
-    G = nx.from_numpy_matrix(W, create_using=nx.DiGraph)
+    G = nx.from_numpy_array(W, create_using=nx.DiGraph)
     parents = set(G.predecessors(i))
     children = set(G.successors(i))
     unstable_descendants = set()
@@ -113,13 +139,13 @@ def stable_blanket(i, W, interventions=set()):
 
 def descendants(i, W):
     """Return the descendants of a node using the graph structure"""
-    G = nx.from_numpy_matrix(W, create_using=nx.DiGraph)
+    G = nx.from_numpy_array(W, create_using=nx.DiGraph)
     return nx.algorithms.dag.descendants(G, i)
 
 
 def ancestors(i, W):
     """Return the ancestors of a node using the graph structure"""
-    G = nx.from_numpy_matrix(W, create_using=nx.DiGraph)
+    G = nx.from_numpy_array(W, create_using=nx.DiGraph)
     return nx.algorithms.dag.ancestors(G, i)
 
 
@@ -202,7 +228,7 @@ def edge_weights(W):
 
 def plot_graph(W, labels=None, weights=False, block=False):
     """Plot a graph with weight matrix W."""
-    G = nx.from_numpy_matrix(W, create_using=nx.DiGraph)
+    G = nx.from_numpy_array(W, create_using=nx.DiGraph)
     pos = nx.drawing.layout.shell_layout(G, scale=0.5)
     p = len(W)
     if labels is None:
