@@ -1,3 +1,5 @@
+v0.2.2, 2022-06-21
+-- Added .readthedocs.yaml, docs/requirements.txt files to configure docs compilation on readthedocs.io
 v0.2.1, 2022-06-21
 -- Allow fixing the random state when calling LGANM.sample
 -- Applied PEP8 standards to all code
