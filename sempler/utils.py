@@ -202,7 +202,6 @@ def edge_weights(W):
 
 def plot_graph(W, labels=None, weights=False, block=False):
     """Plot a graph with weight matrix W."""
-    # TODO: Move to sempler
     G = nx.from_numpy_matrix(W, create_using=nx.DiGraph)
     pos = nx.drawing.layout.shell_layout(G, scale=0.5)
     p = len(W)
@@ -227,6 +226,37 @@ def plot_graph(W, labels=None, weights=False, block=False):
         formatted = dict((e, "%0.3f" % w) for (e, w) in edge_weights(W).items())
         nx.draw_networkx_edge_labels(G, pos, formatted, font_color='red')
     fig.set_facecolor("white")
+    plt.show(block=block)
+
+
+def plot_matrix(A, ax=None, vmin=-3, vmax=3, formt="%0.2f", thresh=1e-16, block=False):
+    """Plot a heatmap for the given matrix A.
+
+    Parameters
+    ----------
+    A : numpy.ndarray
+        The matrix to plot.
+    ax : matplotlib.pyplot.axis, optional
+        The axis to plot on; if None, create a new figure.
+    vmin : float, default=-3
+        The lower threshold for color saturation.
+    vmax : float, default=3
+        The upper threshold for color saturation.
+    formt : string, default="%0.2f"
+        The format with which to print the values of the matrix on top
+        of the corresponding cell.
+    thresh : float, default=1e-16
+        Elements of the matrix which are lower than the threshold in
+        absolute value are plotted as a zero (i.e. white, no text)
+    """
+    if ax is None:
+        plt.figure()
+        ax = plt.gca()
+    ax.imshow(A, vmin=vmin, vmax=vmax, cmap='bwr')
+    for i in range(len(A)):
+        for j in range(len(A)):
+            if A[i, j] != 0:
+                ax.text(j, i, formt % A[i, j], ha='center', va='center')
     plt.show(block=block)
 
 
