@@ -34,8 +34,9 @@ This module contains functions to generate random graphs, which can then be used
 
 import numpy as np
 
-#---------------------------------------------------------------------
+# ---------------------------------------------------------------------
 # DAG Generating Functions
+
 
 def dag_avg_deg(p, k, w_min=1, w_max=1, return_ordering=False, random_state=None, debug=False):
     """Generate an Erdos-Renyi graph with p nodes and average degree k,
@@ -69,7 +70,7 @@ def dag_avg_deg(p, k, w_min=1, w_max=1, return_ordering=False, random_state=None
 
     Example
     -------
-    
+
     >>> from sempler.generators import dag_avg_deg
     >>> dag_avg_deg(5, 2, random_state = 42)
     array([[0., 0., 0., 1., 0.],
@@ -90,14 +91,14 @@ def dag_avg_deg(p, k, w_min=1, w_max=1, return_ordering=False, random_state=None
     """
     np.random.seed(random_state) if random_state is not None else None
     # Generate adjacency matrix as if top. ordering is 1..p
-    prob = k / (p-1)
-    print("p = %d, k = %0.2f, P = %0.4f" % (p,k,prob)) if debug else None
-    A = np.random.uniform(size = (p,p))
+    prob = k / (p - 1)
+    print("p = %d, k = %0.2f, P = %0.4f" % (p, k, prob)) if debug else None
+    A = np.random.uniform(size=(p, p))
     A = (A <= prob).astype(float)
     A = np.triu(A, k=1)
     weights = np.random.uniform(w_min, w_max, size=A.shape)
     W = A * weights
-    
+
     # Permute rows/columns according to random topological ordering
     permutation = np.random.permutation(p)
     # Note the actual topological ordering is the "conjugate" of permutation eg. [3,1,2] -> [2,3,1]
@@ -106,6 +107,7 @@ def dag_avg_deg(p, k, w_min=1, w_max=1, return_ordering=False, random_state=None
         return (W[permutation, :][:, permutation], np.argsort(permutation))
     else:
         return W[permutation, :][:, permutation]
+
 
 def dag_full(p, w_min=1, w_max=1, return_ordering=False, random_state=None):
     """Create a fully connected DAG, sampling the weights from a uniform
@@ -136,7 +138,7 @@ def dag_full(p, w_min=1, w_max=1, return_ordering=False, random_state=None):
 
     Example
     -------
-    
+
     >>> from sempler.generators import dag_full
     >>> dag_full(4, random_state = 42)
     array([[0., 1., 1., 1.],
@@ -156,7 +158,7 @@ def dag_full(p, w_min=1, w_max=1, return_ordering=False, random_state=None):
     """
     np.random.seed(random_state) if random_state is not None else None
     # Build a triangular matrix
-    A = np.triu(np.ones((p,p)), k=1)
+    A = np.triu(np.ones((p, p)), k=1)
     weights = np.random.uniform(w_min, w_max, size=A.shape)
     W = A * weights
     # Permute rows/columns according to random topological ordering
@@ -166,6 +168,7 @@ def dag_full(p, w_min=1, w_max=1, return_ordering=False, random_state=None):
         return (W[permutation, :][:, permutation], np.argsort(permutation))
     else:
         return W[permutation, :][:, permutation]
+
 
 def intervention_targets(p, K, size, random_state=None):
     """Sample a set of intervention targets.
@@ -201,7 +204,7 @@ def intervention_targets(p, K, size, random_state=None):
     --------
 
     Generating a set of single-variable interventions:
-    
+
     >>> from sempler.generators import intervention_targets
     >>> intervention_targets(10, 5, 1, random_state=42)
     [[8], [0], [9], [1], [1]]
@@ -230,7 +233,7 @@ def intervention_targets(p, K, size, random_state=None):
     # Build intervention sizes
     if isinstance(size, tuple) and len(size) == 2:
         max_size = size[1]
-        sizes = np.random.randint(size[0],size[1]+1,K)
+        sizes = np.random.randint(size[0], size[1] + 1, K)
     elif isinstance(size, tuple):
         raise ValueError("The intervention size must be a positive integer or two-element tuple.")
     else:
@@ -242,10 +245,11 @@ def intervention_targets(p, K, size, random_state=None):
     # Sample the targets
     interventions = []
     targets = list(range(p))
-    for i,k in enumerate(range(K)):
+    for i, k in enumerate(range(K)):
         intervention = list(np.random.choice(list(targets), size=sizes[i], replace=False))
         interventions.append(intervention)
     return interventions
+
 
 # To run the method's doctests
 if __name__ == '__main__':

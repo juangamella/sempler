@@ -35,14 +35,18 @@ i.e. functions which can be called with a single argument n (int) and
 return n samples according to the noise distribution they
 represent."""
 
+
 def normal(mean=0, var=1):
     return lambda n: np.random.normal(mean, var**0.5, n)
+
 
 def uniform(lo=0, hi=1):
     return lambda n: np.random.uniform(lo, hi, n)
 
+
 def zero():
     return lambda n: np.zeros(n)
 
+
 def laplace(mean=0, scale=1):
-    return lambda n: np.random.laplace(mean, scale, m)
+    return lambda n: np.random.laplace(mean, scale, n)

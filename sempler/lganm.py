@@ -33,7 +33,6 @@ sample from a linear Gaussian additive noise model.
 """
 
 import numpy as np
-from copy import deepcopy
 import sempler.utils as utils
 from sempler.normal_distribution import NormalDistribution
 
@@ -258,7 +257,6 @@ def _parse_interventions(interventions_dict):
 # To run the LGANM.sample doctests
 if __name__ == '__main__':
     import doctest
-    import sempler.noise
     # Build LGANM
     W = np.array([[0, 0, 0, 0.1, 0],
                   [0, 0, 2.1, 0, 0],

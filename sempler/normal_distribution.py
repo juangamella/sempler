@@ -37,8 +37,10 @@ import numpy as np
 import sempler.utils as utils
 import warnings
 
-#---------------------------------------------------------------------
+# ---------------------------------------------------------------------
 # NormalDistribution class
+
+
 class NormalDistribution():
     """Symbolic representation of a normal distribution.
 
@@ -52,7 +54,7 @@ class NormalDistribution():
         Behaviour when the provided covariance matrix is not positive
         definite. Note that semi-definiteness is enough for sampling,
         but not for the conditioning and regression operations.
-    
+
     Raises
     ------
     ValueError
@@ -91,13 +93,13 @@ class NormalDistribution():
 
     Or if the size of the mean vector and covariance matrix do not
     match:
-    
+
     >>> sempler.NormalDistribution([0], [[1,0],[0,1]])
     Traceback (most recent call last):
       ...
     ValueError: Mismatch in the size of mean vector and covariance matrix.
 
-    
+
     Attributes
     ----------
     mean : numpy.ndarray
@@ -108,7 +110,8 @@ class NormalDistribution():
         The number of variables.
 
     """
-    def __init__(self, mean, covariance, check_valid = 'ignore'):
+
+    def __init__(self, mean, covariance, check_valid='ignore'):
         mean = np.atleast_1d(mean)
         covariance = np.atleast_2d(covariance)
         # Check positive semidefiniteness
@@ -127,8 +130,8 @@ class NormalDistribution():
 
     def __str__(self):
         return "mean:\n" + str(self.mean) + "\ncovariance:\n" + str(self.covariance)
-    
-    def sample(self, n, random_state = None):
+
+    def sample(self, n, random_state=None):
         """Generate a sample from the distribution.
 
         Parameters
@@ -159,7 +162,7 @@ class NormalDistribution():
         return np.random.multivariate_normal(self.mean, self.covariance, size=n)
 
     def marginal(self, X):
-        """Return the marginal distribution of some variables.        
+        """Return the marginal distribution of some variables.
 
         Parameters
         ----------
@@ -168,7 +171,7 @@ class NormalDistribution():
             new distribution are dependent on the order given in X,
             e.g. `marginal([0,1])` and `marginal([1,0])` yield
             different (permuted) distributions.
-        
+
         Returns
         -------
         marginal : sempler.NormalDistribution
@@ -176,9 +179,9 @@ class NormalDistribution():
 
         Examples
         --------
-        
+
         >>> marginal = distribution.marginal(0)
-        
+
         >>> marginal = distribution.marginal([0,1])
 
         """
@@ -192,7 +195,7 @@ class NormalDistribution():
     def conditional(self, Y, X, x):
         """Return the conditional distribution of some variables given some
         others' values.
-        
+
         Parameters
         ----------
         Y : array_like, list of ints or np.array
@@ -204,7 +207,7 @@ class NormalDistribution():
             The indices of the variables to condition on.
         x : array_like
             The values of the conditioning variables.
-        
+
         Raises
         ------
         ValueError
@@ -217,9 +220,9 @@ class NormalDistribution():
 
         Examples
         --------
-        
+
         Conditioning a single variable:
-        
+
         >>> conditional = distribution.conditional(0, 1, .1)
 
         Conditioning several variables:
@@ -232,9 +235,9 @@ class NormalDistribution():
         Traceback (most recent call last):
         ...
         ValueError: Mismatch in the size of X and x.
-        
+
         or if `Y` and `X` are not disjoint:
-        
+
         >>> distribution.conditional([0], [0,1], [0, .1])
         Traceback (most recent call last):
         ...
@@ -262,7 +265,7 @@ class NormalDistribution():
         mean_x = self.mean[X]
         mean = mean_y + cov_yx @ np.linalg.inv(cov_x) @ (x - mean_x)
         covariance = cov_y - cov_yx @ np.linalg.inv(cov_x) @ cov_xy
-        return NormalDistribution(mean,covariance)
+        return NormalDistribution(mean, covariance)
 
     def regress(self, y, Xs):
         """Compute the population MLE of the regression coefficients and
@@ -274,7 +277,7 @@ class NormalDistribution():
             The index of the response/predicted variable.
         Xs : array_like
             The indices of the predictor/explanatory variables.
-        
+
         Returns
         -------
         coefs : numpy.ndarray
@@ -299,8 +302,8 @@ class NormalDistribution():
         # intercept
         Xs = np.atleast_1d(Xs)
         if len(Xs) > 0:
-            cov_y_xs = self.covariance[y,Xs]#utils.matrix_block(self.covariance, y, Xs)
-            cov_xs = self.covariance[:,Xs][Xs,:]#utils.matrix_block(self.covariance, Xs, Xs)
+            cov_y_xs = self.covariance[y, Xs]  # utils.matrix_block(self.covariance, y, Xs)
+            cov_xs = self.covariance[:, Xs][Xs, :]  # utils.matrix_block(self.covariance, Xs, Xs)
             coefs[Xs] = np.linalg.solve(cov_xs, cov_y_xs)
         intercept = self.mean[y] - coefs @ self.mean
         return (coefs, intercept)
@@ -323,7 +326,7 @@ class NormalDistribution():
         -------
         mse : float
            the expected mean squared error.
-        
+
         Example
         -------
 
@@ -334,15 +337,15 @@ class NormalDistribution():
 
         >>> distribution.mse(0,0)
         0.0
-        
+
         """
-        var_y = self.covariance[y,y]
+        var_y = self.covariance[y, y]
         # Compute regression coefficients when regressing on Xs
         (coefs_xs, _) = self.regress(y, Xs)
         # Covariance matrix
         cov = self.covariance
         # Computing the MSE
-        mse = var_y + coefs_xs @ cov @ coefs_xs.T - 2 * cov[y,:] @ coefs_xs.T
+        mse = var_y + coefs_xs @ cov @ coefs_xs.T - 2 * cov[y, :] @ coefs_xs.T
         return mse
 
     def equal(self, dist, rtol=1e-5, atol=1e-8):
@@ -392,18 +395,19 @@ class NormalDistribution():
         # Check type
         if type(dist) != NormalDistribution:
             raise TypeError('Unexpected type for "dist".')
-        equal = np.allclose(self.mean, dist.mean, atol=atol, rtol=rtol) and np.allclose(self.covariance, dist.covariance, atol=atol, rtol=rtol)
+        equal = np.allclose(self.mean, dist.mean, atol=atol, rtol=rtol) and np.allclose(
+            self.covariance, dist.covariance, atol=atol, rtol=rtol)
         return equal
+
 
 # To run the method's doctests
 if __name__ == '__main__':
     import doctest
-    import sempler.noise
     # Build LGANM
-    covariance = np.array([[0.37, 0.  , 0.37, 0.37, 0.75],
-                           [0.  , 0.95, 0.95, 0.95, 1.9 ],
+    covariance = np.array([[0.37, 0., 0.37, 0.37, 0.75],
+                           [0., 0.95, 0.95, 0.95, 1.9],
                            [0.37, 0.95, 2.06, 2.06, 4.11],
                            [0.37, 0.95, 2.06, 2.66, 4.71],
-                           [0.75, 1.9 , 4.11, 4.71, 9.48]])
-    distribution = NormalDistribution([1,2,3,4,5], covariance, check_valid='raise')
+                           [0.75, 1.9, 4.11, 4.71, 9.48]])
+    distribution = NormalDistribution([1, 2, 3, 4, 5], covariance, check_valid='raise')
     doctest.testmod(extraglobs={'distribution': distribution}, verbose=True)
