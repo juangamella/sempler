@@ -37,8 +37,10 @@ from copy import deepcopy
 import sempler.utils as utils
 from sempler.normal_distribution import NormalDistribution
 
-#---------------------------------------------------------------------
+# ---------------------------------------------------------------------
 # LGANM class
+
+
 class LGANM:
     """Represents a linear model with Gaussian additive noise.
 
@@ -69,7 +71,7 @@ class LGANM:
     >>> import numpy as np
 
     (1) Define the connectivity matrix:
-    
+
     >>> W = np.array([[0, 0, 0, 0.1, 0],
     ...               [0, 0, 2.1, 0, 0],
     ...               [0, 0, 0, 3.2, 0],
@@ -83,7 +85,7 @@ class LGANM:
     >>> lganm = sempler.LGANM(W, means, variances)
 
     (2b) With randomly sampled means and variances:
-    
+
     >>> lganm = sempler.LGANM(W, (0,1), (0,1))
 
     An exception is thrown when the connectivity matrix does not correspond to a DAG:
@@ -106,7 +108,7 @@ class LGANM:
         The number of variables (size) of the SCM.
 
     """
-    
+
     def __init__(self, W, means, variances):
         # Set connectivity matrix
         W = np.atleast_2d(W)
@@ -119,22 +121,24 @@ class LGANM:
         if isinstance(variances, tuple) and len(variances) == 2:
             self.variances = np.random.uniform(variances[0], variances[1], size=self.p)
         elif type(variances) == np.ndarray and len(variances) == self.p:
-                self.variances = variances.copy()
+            self.variances = variances.copy()
         else:
-            raise ValueError("Unexpected value for variances. Expected a two-element tuple or numpy.ndarray of length p.")
+            raise ValueError(
+                "Unexpected value for variances. Expected a two-element tuple or numpy.ndarray of length p.")
         # Set means
         if isinstance(means, tuple) and len(means) == 2:
             self.means = np.random.uniform(means[0], means[1], size=self.p)
-        elif type(means)==np.ndarray and len(means) == self.p:
+        elif type(means) == np.ndarray and len(means) == self.p:
             self.means = means.copy()
         else:
-            raise ValueError("Unexpected value for means. Expected a two-element tuple or numpy.ndarray of length p.")
-    
-    def sample(self, n=100, population=False, do_interventions={}, shift_interventions={}, noise_interventions={}):
+            raise ValueError(
+                "Unexpected value for means. Expected a two-element tuple or numpy.ndarray of length p.")
+
+    def sample(self, n=100, population=False, do_interventions={}, shift_interventions={}, noise_interventions={}, random_state=None):
         """Generates n observations from the linear Gaussian SCM, under the
         given do, shift or noise interventions. If none are given,
         sample from the observational distribution.
-        
+
         Parameters
         ----------
         n : int, optional
@@ -174,7 +178,7 @@ class LGANM:
         --------
 
         Sampling the observational environment in the "population setting"
-        
+
         >>> distribution = lganm.sample(population = True)
 
         Sampling under a shift intervention on variable 1 with standard gaussian noise
@@ -203,36 +207,37 @@ class LGANM:
         # Perform shift interventions
         if shift_interventions:
             shift_interventions = _parse_interventions(shift_interventions)
-            targets = shift_interventions[:,0].astype(int)
-            means[targets] += shift_interventions[:,1]
-            variances[targets] += shift_interventions[:,2]
+            targets = shift_interventions[:, 0].astype(int)
+            means[targets] += shift_interventions[:, 1]
+            variances[targets] += shift_interventions[:, 2]
 
         # Perform noise interventions. Note that they take preference
         # i.e. "override" shift interventions
         if noise_interventions:
             noise_interventions = _parse_interventions(noise_interventions)
-            targets = noise_interventions[:,0].astype(int)
-            means[targets] = noise_interventions[:,1]
-            variances[targets] = noise_interventions[:,2]
-        
+            targets = noise_interventions[:, 0].astype(int)
+            means[targets] = noise_interventions[:, 1]
+            variances[targets] = noise_interventions[:, 2]
+
         # Perform do interventions. Note that they take preference
         # i.e. "override" shift and noise interventions
         if do_interventions:
             do_interventions = _parse_interventions(do_interventions)
-            targets = do_interventions[:,0].astype(int)
-            means[targets] = do_interventions[:,1]
-            variances[targets] = do_interventions[:,2]
-            W[:,targets] = 0
-            
+            targets = do_interventions[:, 0].astype(int)
+            means[targets] = do_interventions[:, 1]
+            variances[targets] = do_interventions[:, 2]
+            W[:, targets] = 0
+
         # Sampling by building the joint distribution
         A = np.linalg.inv(np.eye(self.p) - W.T)
         mean = A @ means
         covariance = A @ np.diag(variances) @ A.T
         distribution = NormalDistribution(mean, covariance)
         if not population:
-            return distribution.sample(n)
+            return distribution.sample(n, random_state=random_state)
         else:
             return distribution
+
 
 def _parse_interventions(interventions_dict):
     """Used internally by LGANM.sample. Transforms the interventions from
@@ -256,9 +261,9 @@ if __name__ == '__main__':
     import sempler.noise
     # Build LGANM
     W = np.array([[0, 0, 0, 0.1, 0],
-              [0, 0, 2.1, 0, 0],
-              [0, 0, 0, 3.2, 0],
-              [0, 0, 0, 0, 5.0],
-              [0, 0, 0, 0, 0]])
-    lganm = LGANM(W, (0,1), (0,1))
+                  [0, 0, 2.1, 0, 0],
+                  [0, 0, 0, 3.2, 0],
+                  [0, 0, 0, 0, 5.0],
+                  [0, 0, 0, 0, 0]])
+    lganm = LGANM(W, (0, 1), (0, 1))
     doctest.testmod(extraglobs={'lganm': lganm}, verbose=True)
