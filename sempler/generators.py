@@ -217,6 +217,7 @@ def intervention_targets(p, K, size, replace=True, random_state=None):
     [[0], [7], [6], [4], [4]]
 
     Without replacement:
+
     >>> intervention_targets(10, 5, 1, replace=False, random_state=42)
     [[0], [7], [6], [4], [3]]
 
@@ -247,6 +248,7 @@ def intervention_targets(p, K, size, replace=True, random_state=None):
     If sampling targets without replacement, the maximum intervention
     size and number of interventions must be set accordingly,
     i.e. `max_size x K <= p`. Otherwise an exception is raised:
+
     >>> intervention_targets(10, 5, (0,3), replace=False)
     Traceback (most recent call last):
       ...
