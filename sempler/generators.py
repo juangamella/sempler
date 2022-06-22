@@ -73,34 +73,35 @@ def dag_avg_deg(p, k, w_min=1, w_max=1, return_ordering=False, random_state=None
 
     >>> from sempler.generators import dag_avg_deg
     >>> dag_avg_deg(5, 2, random_state = 42)
-    array([[0., 0., 0., 1., 0.],
-           [0., 0., 1., 1., 0.],
-           [0., 0., 0., 1., 0.],
+    array([[0., 0., 1., 1., 0.],
+           [0., 0., 1., 0., 0.],
            [0., 0., 0., 0., 0.],
+           [0., 0., 1., 0., 1.],
            [0., 0., 0., 0., 0.]])
 
     Optionally, the ordering used to orient the edges can be returned
 
     >>> dag_avg_deg(5, 2, return_ordering = True, random_state = 42)
-    (array([[0., 0., 0., 1., 0.],
-           [0., 0., 1., 1., 0.],
-           [0., 0., 0., 1., 0.],
+    (array([[0., 0., 1., 1., 0.],
+           [0., 0., 1., 0., 0.],
            [0., 0., 0., 0., 0.],
-           [0., 0., 0., 0., 0.]]), array([0, 4, 1, 2, 3]))
+           [0., 0., 1., 0., 1.],
+           [0., 0., 0., 0., 0.]]), array([0, 3, 1, 4, 2]))
+
 
     """
-    np.random.seed(random_state) if random_state is not None else None
+    rng = np.random.default_rng(random_state)
     # Generate adjacency matrix as if top. ordering is 1..p
     prob = k / (p - 1)
     print("p = %d, k = %0.2f, P = %0.4f" % (p, k, prob)) if debug else None
-    A = np.random.uniform(size=(p, p))
+    A = rng.uniform(size=(p, p))
     A = (A <= prob).astype(float)
     A = np.triu(A, k=1)
-    weights = np.random.uniform(w_min, w_max, size=A.shape)
+    weights = rng.uniform(w_min, w_max, size=A.shape)
     W = A * weights
 
     # Permute rows/columns according to random topological ordering
-    permutation = np.random.permutation(p)
+    permutation = rng.permutation(p)
     # Note the actual topological ordering is the "conjugate" of permutation eg. [3,1,2] -> [2,3,1]
     print("avg degree = %0.2f" % (np.sum(A) * 2 / len(A))) if debug else None
     if return_ordering:
@@ -141,28 +142,30 @@ def dag_full(p, w_min=1, w_max=1, return_ordering=False, random_state=None):
 
     >>> from sempler.generators import dag_full
     >>> dag_full(4, random_state = 42)
-    array([[0., 1., 1., 1.],
-           [0., 0., 0., 1.],
-           [0., 1., 0., 1.],
-           [0., 0., 0., 0.]])
+    array([[0., 0., 1., 1.],
+           [1., 0., 1., 1.],
+           [0., 0., 0., 0.],
+           [0., 0., 1., 0.]])
+
 
     Optionally, the ordering used to orient the edges can be returned
 
     >>> dag_full(4, return_ordering = True, random_state = 42)
-    (array([[0., 1., 1., 1.],
-           [0., 0., 0., 1.],
-           [0., 1., 0., 1.],
-           [0., 0., 0., 0.]]), array([0, 2, 1, 3]))
+    (array([[0., 0., 1., 1.],
+           [1., 0., 1., 1.],
+           [0., 0., 0., 0.],
+           [0., 0., 1., 0.]]), array([1, 0, 3, 2]))
+
 
 
     """
-    np.random.seed(random_state) if random_state is not None else None
+    rng = np.random.default_rng(random_state)
     # Build a triangular matrix
     A = np.triu(np.ones((p, p)), k=1)
-    weights = np.random.uniform(w_min, w_max, size=A.shape)
+    weights = rng.uniform(w_min, w_max, size=A.shape)
     W = A * weights
     # Permute rows/columns according to random topological ordering
-    permutation = np.random.permutation(p)
+    permutation = rng.permutation(p)
     # Note the actual topological ordering is the "conjugate" of permutation eg. [3,1,2] -> [2,3,1]
     if return_ordering:
         return (W[permutation, :][:, permutation], np.argsort(permutation))
