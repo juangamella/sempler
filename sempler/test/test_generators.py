@@ -28,7 +28,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-#---------------------------------------------------------------------
+# ---------------------------------------------------------------------
 # Unit testing for module utils
 
 import unittest
@@ -38,10 +38,12 @@ import sempler.generators
 import sempler.utils as utils
 
 # Tests for the DAG generation
+
+
 class GeneratorTests(unittest.TestCase):
     def test_avg_degree(self):
         p = 1000
-        for k in range(1,5):
+        for k in range(1, 5):
             W = sempler.generators.dag_avg_deg(p, k, 1, 2)
             av_deg = np.sum(W > 0) * 2 / p
             self.assertEqual(len(W), p)
@@ -55,22 +57,57 @@ class GeneratorTests(unittest.TestCase):
     def test_full_dag(self):
         for p in range(10):
             W = sempler.generators.dag_full(p)
-            self.assertEqual(p*(p-1)/2, W.sum())
+            self.assertEqual(p * (p - 1) / 2, W.sum())
 
     def test_intervention_targets(self):
         possible_targets = set(range(10))
         # Test random-sized interventions
-        interventions = sempler.generators.intervention_targets(10, 100, (0,3))
+        interventions = sempler.generators.intervention_targets(10, 100, (0, 3))
         for intervention in interventions:
             self.assertLessEqual(len(intervention), 3)
             self.assertGreaterEqual(len(intervention), 0)
             self.assertEqual(len(intervention), len(set(intervention) & possible_targets))
+
         # Test empty-sized interventions
-        interventions = sempler.generators.intervention_targets(10, 100, (0,0))
+        interventions = sempler.generators.intervention_targets(10, 100, (0, 0))
         for intervention in interventions:
             self.assertEqual(len(intervention), 0)
+        # Test empty-sized interventions (without replacement)
+        interventions = sempler.generators.intervention_targets(10, 100, (0, 0), replace=False)
+        for intervention in interventions:
+            self.assertEqual(len(intervention), 0)
+
         # Test single-target interventions
         interventions = sempler.generators.intervention_targets(10, 100, 1)
         for intervention in interventions:
             self.assertEqual(len(intervention), 1)
             self.assertEqual(len(intervention), len(set(intervention) & possible_targets))
+
+        # Test single-target interventions (without replacement)
+        interventions = sempler.generators.intervention_targets(10, 10, 1, replace=False)
+        union = set()
+        for intervention in interventions:
+            self.assertTrue(len(union & set(intervention)) == 0)
+            union |= set(intervention)
+            self.assertEqual(len(intervention), 1)
+            self.assertEqual(len(intervention), len(set(intervention) & possible_targets))
+        self.assertEqual(union, set(range(10)))
+
+    def test_intervention_targets_without_replacement(self):
+        # Check that targets are not repeated (random intervention sizes)
+        for i in range(100):
+            interventions = sempler.generators.intervention_targets(
+                20, 5, (0, 4), replace=False, random_state=i)
+            union = set()
+            for intervention in interventions:
+                self.assertTrue(len(union & set(intervention)) == 0)
+                union |= set(intervention)
+
+        # Check that targets are not repeated (fixed intervention sizes)
+        for i in range(100):
+            interventions = sempler.generators.intervention_targets(
+                20, 5, 4, replace=False, random_state=i)
+            union = set()
+            for intervention in interventions:
+                self.assertTrue(len(union & set(intervention)) == 0)
+                union |= set(intervention)

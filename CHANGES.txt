@@ -1,3 +1,6 @@
+v0.2.3, 2022-06-22
+-- Adapted sempler.generator functions to new numpy default random number generator
+-- Expanded generators.intervention_targets function to allow sampling without replacement
 v0.2.2, 2022-06-21
 -- Added .readthedocs.yaml, docs/requirements.txt files to configure docs compilation on readthedocs.io
 v0.2.1, 2022-06-21
