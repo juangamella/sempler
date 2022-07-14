@@ -1,3 +1,5 @@
+v0.2.4, 2022-07-14
+-- Also allow setting the random state for the sampling of means/variances in the initialization of the LGANM class
 v0.2.3, 2022-06-22
 -- Adapted sempler.generator functions to new numpy default random number generator
 -- Expanded generators.intervention_targets function to allow sampling without replacement
