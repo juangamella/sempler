@@ -108,7 +108,7 @@ class LGANM:
 
     """
 
-    def __init__(self, W, means, variances):
+    def __init__(self, W, means, variances, random_state=None):
         # Set connectivity matrix
         W = np.atleast_2d(W)
         if not utils.is_dag(W):
@@ -116,9 +116,12 @@ class LGANM:
         self.W = W.copy()
         self.p = len(W)
 
+        rng = np.random.default_rng(random_state)
+
         # Set variances
         if isinstance(variances, tuple) and len(variances) == 2:
-            self.variances = np.random.uniform(variances[0], variances[1], size=self.p)
+            self.variances = rng.uniform(
+                variances[0], variances[1], size=self.p)
         elif type(variances) == np.ndarray and len(variances) == self.p:
             self.variances = variances.copy()
         else:
@@ -126,7 +129,7 @@ class LGANM:
                 "Unexpected value for variances. Expected a two-element tuple or numpy.ndarray of length p.")
         # Set means
         if isinstance(means, tuple) and len(means) == 2:
-            self.means = np.random.uniform(means[0], means[1], size=self.p)
+            self.means = rng.uniform(means[0], means[1], size=self.p)
         elif type(means) == np.ndarray and len(means) == self.p:
             self.means = means.copy()
         else:
