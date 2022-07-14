@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name='sempler',
-    version='0.2.3',
+    version='0.2.4',
     author='Juan L Gamella',
     author_email='juangamella@gmail.com',
     packages=['sempler', 'sempler.test'],
