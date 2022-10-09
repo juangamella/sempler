@@ -8,6 +8,8 @@ Two classes are defined for this purpose.
 - :class:`sempler.ANM` is for general (acyclic) additive noise SCMs. Any assignment function is possible, as are the distributions of the noise terms.
 - :class:`sempler.LGANM` is for linear Gaussian SCMs. While this is also possible with :class:`sempler.ANM`, this class simplifies the interface and offers the additional functionality of sampling "in the population setting", i.e. by returning a symbolic gaussian distribution (see :func:`sempler.LGANM.sample` and :class:`sempler.NormalDistribution`).
 
+Additionally, in :class:`sempler.DRFSCM` we provide an implementation of the semi-synthetic data generation procedure described in [1]. Please cite that paper if you use this procedure in your work.
+ 
 To allow for random generation of SCMs and interventional distributions, the module :class:`sempler.generators` contains functions to sample random DAGs and intervention targets.
 
 Versioning
@@ -31,6 +33,11 @@ About the Name
 --------------
 
 *Structural causal models* are sometimes referred to in the literature as *structural equation models*, or SEMs. The name sempler comes from *SEM sampler*.
+
+References
+----------
+
+<TODO: Reference here>
 
 
 .. toctree::
