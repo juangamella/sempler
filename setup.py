@@ -12,5 +12,5 @@ setuptools.setup(
     description='Sample from general structural causal models (SCMs).',
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
-    install_requires=['numpy>=1.15.0', 'matplotlib', 'networkx>=2.2']
+    install_requires=['numpy>=1.17.0']
 )

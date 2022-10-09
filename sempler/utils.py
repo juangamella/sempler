@@ -32,8 +32,6 @@
 """
 
 import numpy as np
-import networkx as nx
-import matplotlib.pyplot as plt
 import itertools
 
 
@@ -214,7 +212,7 @@ def topological_ordering(A):
     else:
         return ordering
 
-
+    
 def edge_weights(W):
     """Return the weights of all the edges of W in a dictionary, i.e. with
     keys (i,j) for values W[i,j] when W[i,j] != 0."""
@@ -226,64 +224,6 @@ def edge_weights(W):
     return edge_weights
 
 
-def plot_graph(W, labels=None, weights=False, block=False):
-    """Plot a graph with weight matrix W."""
-    G = nx.from_numpy_array(W, create_using=nx.DiGraph)
-    pos = nx.drawing.layout.shell_layout(G, scale=0.5)
-    p = len(W)
-    if labels is None:
-        node_labels = dict(zip(np.arange(p), map(lambda i: "$X_{%d}$" % i, range(p))))
-    else:
-        node_labels = dict(zip(np.arange(p), labels))
-    # Plot
-    fig = plt.figure()
-    params = {'node_color': 'white',
-              'edgecolors': 'black',
-              'node_size': 900,
-              'linewidths': 1.5,
-              'width': 1.5,
-              'arrowsize': 20,
-              'arrowstyle': '->',
-              'min_target_margin': 10,
-              'labels': node_labels}
-    nx.draw(G, pos, **params)
-    # Edge weights
-    if weights:
-        formatted = dict((e, "%0.3f" % w) for (e, w) in edge_weights(W).items())
-        nx.draw_networkx_edge_labels(G, pos, formatted, font_color='red')
-    fig.set_facecolor("white")
-    plt.show(block=block)
-
-
-def plot_matrix(A, ax=None, vmin=-3, vmax=3, formt="%0.2f", thresh=1e-16, block=False):
-    """Plot a heatmap for the given matrix A.
-
-    Parameters
-    ----------
-    A : numpy.ndarray
-        The matrix to plot.
-    ax : matplotlib.pyplot.axis, optional
-        The axis to plot on; if None, create a new figure.
-    vmin : float, default=-3
-        The lower threshold for color saturation.
-    vmax : float, default=3
-        The upper threshold for color saturation.
-    formt : string, default="%0.2f"
-        The format with which to print the values of the matrix on top
-        of the corresponding cell.
-    thresh : float, default=1e-16
-        Elements of the matrix which are lower than the threshold in
-        absolute value are plotted as a zero (i.e. white, no text)
-    """
-    if ax is None:
-        plt.figure()
-        ax = plt.gca()
-    ax.imshow(A, vmin=vmin, vmax=vmax, cmap='bwr')
-    for i in range(len(A)):
-        for j in range(len(A)):
-            if A[i, j] != 0:
-                ax.text(j, i, formt % A[i, j], ha='center', va='center')
-    plt.show(block=block)
 
 
 def allclose(A, B, rtol=1e-5, atol=1e-8):
