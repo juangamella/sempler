@@ -73,22 +73,90 @@ def _bootstrap(data, n=None, random_state=None):
 
     Examples
     --------
-    >>> data = np.random.uniform((10,10))
+    >>> data = rng.uniform(size=(10,10))
     >>> sample = _bootstrap(data)
     >>> sample.shape
-    (10,10)
+    (10, 10)
 
-    >>> data = np.random.uniform(10)
+    >>> data = rng.uniform(size=5)
     >>> sample = _bootstrap(data)
     >>> sample.shape
     (5,)
-    >>> _bootstrap(data, n=1, random_state=42)
+    >>> _bootstrap(data, n=3, random_state=42)
+    array([0.5817273 , 0.15539712, 0.15539712])
     """
     # Sample with replacement
+    n = len(data) if n is None else n
     rng = np.random.default_rng(random_state)
     idx = rng.choice(len(data), n, replace=True)
     sample = data[idx]
     return sample
+
+class BayesianNetwork:
+    """Parent class implementing the basic input checks on behalf of the
+    inheriting classes.
+
+    Parameters
+    ----------
+    graph : numpy.ndarray
+        Two dimensional array representing a DAG connectivity, where
+        `graph[i,j] != 0` implies the edge `i -> j`.
+    p : int
+        The number of variables in the graph and data.
+    e : int
+        The number of environments in the data.
+    Ns : list of int
+        The sizes of the samples from each environment.
+    N : int
+        The total number of observations (across all environments).
+    """
+    def __init__(self, graph, data, verbose=False):
+        # Check inputs: graph
+        if not isinstance(graph, np.ndarray):
+            raise TypeError(_GRAPH_TYPE_ERROR)
+        elif graph.ndim != 2:
+            raise ValueError(_GRAPH_TYPE_ERROR)
+        elif not gnies.utils.is_dag(graph):
+            raise ValueError("graph is not a DAG.")
+
+        # Check inputs: data
+        if not isinstance(data, list):
+            raise TypeError(_DATA_TYPE_ERROR)
+        else:
+            for sample in data:
+                # Check every sample is a numpy.ndarray
+                if not isinstance(sample, np.ndarray):
+                    raise TypeError(_DATA_TYPE_ERROR)
+                # with two dimensions
+                elif sample.ndim != 2:
+                    raise ValueError(_DATA_TYPE_ERROR)
+                # and the number of variables matches that in the graph
+                elif sample.shape[1] != graph.shape[1]:
+                    raise ValueError("graph and data have different number of variables")
+
+        # Set parameters
+        self.graph = (graph != 0).astype(int)
+        self._data = copy.deepcopy(data)
+        self.p = graph.shape[1]
+        self.e = len(self._data)
+        self.Ns = [len(sample) for sample in self._data]
+        self.N = np.sum(self.Ns)
+        self._ordering = gnies.utils.topological_ordering(self.graph)
+
+    def sample(self, n):
+        # Check input: n
+        if n is not None and type(n) not in [int, list]:
+            raise TypeError(_N_TYPE_ERROR)
+        elif type(n) == int and n <= 0:
+            raise ValueError(_N_TYPE_ERROR)
+        elif type(n) == list:
+            for i in n:
+                if type(i) != int:
+                    raise TypeError(_N_TYPE_ERROR)
+                elif i <= 0:
+                    raise ValueError(_N_TYPE_ERROR)
+        return None
+
 
 # --------------------------------------------------------------------
 # DRFSCM class
@@ -143,10 +211,16 @@ class DRFSCM(BayesianNetwork):
         --------
 
         Fitting to some random data and a random graph.
-        >>> data = [rng.uniform(size=(100, 4)) for _ in range(2)]
-        >>> graph = sempler.generators.dag_avg_deg(4, 1.7, 1, 1, random_state=42)
-        >>> DRFSCM(graph, data)
-        >>> DRFSCM.graph
+        >>> data = [rng.uniform(size=(100, 5)) for _ in range(2)]
+        >>> graph = sempler.generators.dag_avg_deg(5, 2, 1, 1, random_state=42)
+        >>> scm = DRFSCM(graph, data)
+        >>> scm.graph
+        array([[0, 0, 1, 1, 0],
+               [0, 0, 1, 0, 0],
+               [0, 0, 0, 0, 0],
+               [0, 0, 1, 0, 1],
+               [0, 0, 0, 0, 0]])
+
 
         """
         super().__init__(graph, data, verbose)
@@ -210,15 +284,17 @@ class DRFSCM(BayesianNetwork):
         data match those of the original:
         >>> new_data = scm.sample()
         >>> len(new_data) == scm.e
-        >>> [len(sample) for sample in new_data] == self.Ns
+        True
+        >>> [len(sample) for sample in new_data] == scm.Ns
+        True
 
         Specifying the sample sizes:
         >>> new_data = scm.sample(3)
-        >>> [len(sample) for sample in new_data]
-
+        >>> [len(sample) for sample in new_data]        
+        [3, 3]
         >>> new_data = scm.sample([2, 3])
         >>> [len(sample) for sample in new_data]
-
+        [2, 3]
         """
         # Checks inputs
         super().sample(n)
@@ -245,76 +321,11 @@ class DRFSCM(BayesianNetwork):
         return sampled_data
 
 
-class BayesianNetwork:
-    """Parent class implementing the basic input checks on behalf of the
-    inheriting classes.
-
-    Parameters
-    ----------
-    graph : numpy.ndarray
-        Two dimensional array representing a DAG connectivity, where
-        `graph[i,j] != 0` implies the edge `i -> j`.
-    p : int
-        The number of variables in the graph and data.
-    e : int
-        The number of environments in the data.
-    Ns : list of int
-        The sizes of the samples from each environment.
-    N : int
-        The total number of observations (across all environments).
-    """
-    def __init__(self, graph, data, verbose=False):
-        # Check inputs: graph
-        if not isinstance(graph, np.ndarray):
-            raise TypeError(_GRAPH_TYPE_ERROR)
-        elif graph.ndim != 2:
-            raise ValueError(_GRAPH_TYPE_ERROR)
-        elif not gnies.utils.is_dag(graph):
-            raise ValueError("graph is not a DAG.")
-
-        # Check inputs: data
-        if not isinstance(data, list):
-            raise TypeError(_DATA_TYPE_ERROR)
-        else:
-            for sample in data:
-                # Check every sample is a numpy.ndarray
-                if not isinstance(sample, np.ndarray):
-                    raise TypeError(_DATA_TYPE_ERROR)
-                # with two dimensions
-                elif sample.ndim != 2:
-                    raise ValueError(_DATA_TYPE_ERROR)
-                # and the number of variables matches that in the graph
-                elif sample.shape[1] != graph.shape[1]:
-                    raise ValueError("graph and data have different number of variables")
-
-        # Set parameters
-        self.graph = (graph != 0).astype(int)
-        self._data = copy.deepcopy(data)
-        self.p = graph.shape[1]
-        self.e = len(self._data)
-        self.Ns = [len(sample) for sample in self._data]
-        self.N = np.sum(Ns)
-        self._ordering = gnies.utils.topological_ordering(self.graph)
-
-    def sample(self, n):
-        # Check input: n
-        if n is not None and type(n) not in [int, list]:
-            raise TypeError(_N_TYPE_ERROR)
-        elif type(n) == int and n <= 0:
-            raise ValueError(_N_TYPE_ERROR)
-        elif type(n) == list:
-            for i in n:
-                if type(i) != int:
-                    raise TypeError(_N_TYPE_ERROR)
-                elif i <= 0:
-                    raise ValueError(_N_TYPE_ERROR)
-        return None
-
-
 # To run the doctests
 if __name__ == '__main__':
     import doctest
+    import sempler.generators
     rng = np.random.default_rng(42)
     data = [rng.uniform(size=(100, 4)) for _ in range(2)]
-    graph = sempler.generators.dag_avg_deg(4, 1.7, 1, 1, random_state=42)
+    graph = sempler.generators.dag_avg_deg(4, 2, 1, 1, random_state=42)
     doctest.testmod(extraglobs={'rng': rng, 'data': data, 'graph': graph}, verbose=True)
