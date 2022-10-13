@@ -65,6 +65,5 @@ class GaussianDistributionTests(unittest.TestCase):
         semi_sample = drf_scm.sample()
         cov_diffs = sample_covs - covs(semi_sample)
         mean_diffs = sample_means - means(semi_sample)
-        print(sample_covs)
         print(cov_diffs / sample_covs)
         print(mean_diffs / sample_means)

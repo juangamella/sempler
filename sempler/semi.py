@@ -192,11 +192,11 @@ class DRFSCM(BayesianNetwork):
     Examples
     --------
 
-    Fitting to some random data and a random graph.
+    Fitting to some random data (from two environments) and a random graph.
 
     >>> rng = np.random.default_rng(42)
     >>> data = [rng.uniform(size=(100, 5)) for _ in range(2)]
-    >>> graph = sempler.generators.dag_avg_deg(5, 2, 1, 1, random_state=42)
+    >>> graph = sempler.generators.dag_avg_deg(p=5, k=2, random_state=42)
     >>> scm = DRFSCM(graph, data)
     >>> scm.graph
     array([[0, 0, 1, 1, 0],

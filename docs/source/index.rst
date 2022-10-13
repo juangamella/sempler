@@ -55,7 +55,7 @@ About the Name
 
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 0
    :caption: Contents:
 
    self
