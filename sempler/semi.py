@@ -73,6 +73,8 @@ def _bootstrap(data, n=None, random_state=None):
 
     Examples
     --------
+
+    >>> rng = np.random.default_rng(42)
     >>> data = rng.uniform(size=(10,10))
     >>> sample = _bootstrap(data)
     >>> sample.shape
@@ -83,7 +85,7 @@ def _bootstrap(data, n=None, random_state=None):
     >>> sample.shape
     (5,)
     >>> _bootstrap(data, n=3, random_state=42)
-    array([0.5817273 , 0.15539712, 0.15539712])
+    array([0.90858069, 0.96917638, 0.96917638])
     """
     # Sample with replacement
     n = len(data) if n is None else n
@@ -163,66 +165,49 @@ class BayesianNetwork:
 
 
 class DRFSCM(BayesianNetwork):
-    """Represents an SCM fitted to (multi-environment) data using
-    distributional random forests. Once fitted, one can call
-    `TODO:sample()` to generate synthetic data from the SCM.
+    """Fit a non-parametric SCM with the given adjacency to the given
+    data, modelling the conditionals through distributional random
+    forests.
 
     Parameters
     ----------
     graph : numpy.ndarray
-        Two dimensional array representing a DAG connectivity, where
-        `graph[i,j] != 0` implies the edge `i -> j`.
-    p : int
-        The number of variables in the graph and data.
-    e : int
-        The number of environments in the data.
-    Ns : list of int
-        The sizes of the samples from each environment.
-    N : int
-        The total number of observations (across all environments).
+        Two dimensional array representing a DAG connectivity,
+        where `graph[i,j] != 0` implies the edge `i -> j`.
+    data : list of numpy.ndarray
+        List of two-dimensional arrays containing the samples from
+        each environment, where rows correspond to observations
+        and columns to variables.
+    verbose : bool, default=False
+        If debugging traces should be printed.
+
+    Raises
+    ------
+    TypeError :
+        If the graph or data are of the wrong type.
+    ValueError :
+        If the given adjacency is not a DAG or the `samples` in
+        the data are of the wrong size.
+
+    Examples
+    --------
+
+    Fitting to some random data and a random graph.
+
+    >>> rng = np.random.default_rng(42)
+    >>> data = [rng.uniform(size=(100, 5)) for _ in range(2)]
+    >>> graph = sempler.generators.dag_avg_deg(5, 2, 1, 1, random_state=42)
+    >>> scm = DRFSCM(graph, data)
+    >>> scm.graph
+    array([[0, 0, 1, 1, 0],
+           [0, 0, 1, 0, 0],
+           [0, 0, 0, 0, 0],
+           [0, 0, 1, 0, 1],
+           [0, 0, 0, 0, 0]])
+
 
     """
     def __init__(self, graph, data, verbose=False):
-        """Fit a non-parametric SCM with the given adjacency to the given
-        data, modelling the conditionals through distributional random
-        forests.
-
-        Parameters
-        ----------
-        graph : numpy.ndarray
-            Two dimensional array representing a DAG connectivity,
-            where `graph[i,j] != 0` implies the edge `i -> j`.
-        data : list of numpy.ndarray
-            List of two-dimensional arrays containing the samples from
-            each environment, where rows correspond to observations
-            and columns to variables.
-        verbose : bool, default=False
-            If debugging traces should be printed.
-
-        Raises
-        ------
-        TypeError :
-            If the graph or data are of the wrong type.
-        ValueError :
-            If the given adjacency is not a DAG or the `samples` in
-            the data are of the wrong size.
-
-        Examples
-        --------
-
-        Fitting to some random data and a random graph.
-        >>> data = [rng.uniform(size=(100, 5)) for _ in range(2)]
-        >>> graph = sempler.generators.dag_avg_deg(5, 2, 1, 1, random_state=42)
-        >>> scm = DRFSCM(graph, data)
-        >>> scm.graph
-        array([[0, 0, 1, 1, 0],
-               [0, 0, 1, 0, 0],
-               [0, 0, 0, 0, 0],
-               [0, 0, 1, 0, 1],
-               [0, 0, 0, 0, 0]])
-
-
-        """
         super().__init__(graph, data, verbose)
 
         # Fit distributional random forests, i.e. one per (node with
@@ -278,17 +263,18 @@ class DRFSCM(BayesianNetwork):
 
         Examples
         --------
-        >>> scm = DRFSCM(graph, data)
 
         If not specifying a sample size, the sample sizes in the new
         data match those of the original:
+
         >>> new_data = scm.sample()
-        >>> len(new_data) == scm.e
-        True
-        >>> [len(sample) for sample in new_data] == scm.Ns
-        True
+        >>> len(new_data)
+        2
+        >>> [len(sample) for sample in new_data]
+        [100, 100]
 
         Specifying the sample sizes:
+
         >>> new_data = scm.sample(3)
         >>> [len(sample) for sample in new_data]        
         [3, 3]
@@ -328,4 +314,5 @@ if __name__ == '__main__':
     rng = np.random.default_rng(42)
     data = [rng.uniform(size=(100, 4)) for _ in range(2)]
     graph = sempler.generators.dag_avg_deg(4, 2, 1, 1, random_state=42)
-    doctest.testmod(extraglobs={'rng': rng, 'data': data, 'graph': graph}, verbose=True)
+    scm = DRFSCM(graph, data)
+    doctest.testmod(extraglobs={'rng': rng, 'data': data, 'graph': graph, 'scm': scm}, verbose=True)
