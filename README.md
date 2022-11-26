@@ -2,7 +2,7 @@
 
 You can find the full docs at https://sempler.readthedocs.io/en/latest/.
 
-This package is one of the software contributions of the paper [*"Characterization and Greedy Learning of Gaussian Structural Causal Models under Unknown Interventions"*](<TODO: arxiv link>) by Juan L. Gamella, Armeen Taeb, Christina Heinze-Deml and Peter Bühlmann.
+Sempler allows you to generate generate semi-synthetic data with known causal ground truth but distributions closely resembling those of a real data set of choice. It is one of the software contributions of the paper [*"Characterization and Greedy Learning of Gaussian Structural Causal Models under Unknown Interventions"*](<TODO: arxiv link>) by Juan L. Gamella, Armeen Taeb, Christina Heinze-Deml and Peter Bühlmann.
 
 If you find this code useful, please consider citing:
 
@@ -16,7 +16,7 @@ If you find this code useful, please consider citing:
 
 ## Overview
 
-Sempler allows you to generate generate semi-synthetic data with known causal ground truth but distributions closely resembling those of a real data set of choice. You can do this through the class `sempler.DRFSCM`. A detailed explanation of the procedure in Appendix F of the [paper](<TODO: arxiv link>).
+The semi-synthetic data generation procedure is implemented in the class `sempler.DRFSCM` (see [docs](https://sempler.readthedocs.io/en/latest/.)) A detailed explanation of the procedure can be found in Appendix F of the [paper](<TODO: arxiv link>).
 
 Additionally, you can generate purely synthetic data from general additive-noise models. Two classes are defined for this purpose.
 
