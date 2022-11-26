@@ -1,10 +1,22 @@
 Welcome to sempler's documentation!
 ===================================
 
-Sempler allows you to generate observational and interventional data from general structural causal models.
+Sempler allows you to generate generate semi-synthetic data with known causal ground truth but distributions closely resembling those of a real data set of choice. It is one of the software contributions of the paper `"Characterization and Greedy Learning of Gaussian Structural Causal Models under Unknown Interventions" <TODO: arxiv link>`__ by Juan L. Gamella, Armeen Taeb, Christina Heinze-Deml and Peter Bühlmann. You can find more details in Appendix F of the paper.
 
-Generating synthetic data
--------------------------
+If you find this code useful, please consider citing:::
+
+  @article{gamella2022characterization,
+    title={Characterization and Greedy Learning of Gaussian Structural Causal Models under Unknown Interventions},
+    author={Gamella, Juan L. and Taeb, Armeen and Heinze-Deml, Christina and B\"uhlmann, Peter},
+    year={2022}
+  }
+
+Overview
+--------
+
+The semi-synthetic data generation procedure is implemented in the class :class:`sempler.DRFSCM` (see [docs](https://sempler.readthedocs.io/en/latest/.)). A detailed explanation of the procedure can be found in :ref:`[1, appendix E] <references main>`.
+
+Additionally, you can generate purely synthetic data from general additive-noise models. Two classes are defined for this purpose.
 
 Two classes are defined for this purpose.
 
@@ -12,13 +24,6 @@ Two classes are defined for this purpose.
 - :class:`sempler.LGANM` is for linear Gaussian SCMs. While this is also possible with :class:`sempler.ANM`, this class simplifies the interface and offers the additional functionality of sampling "in the population setting", i.e. by returning a symbolic gaussian distribution (see :func:`sempler.LGANM.sample` and :class:`sempler.NormalDistribution`).
 
 To allow for random generation of SCMs and interventional distributions, the module :class:`sempler.generators` contains functions to sample random DAGs and intervention targets.
-
-Generating semi-synthetic data
-------------------------------
-  
-The class :class:`sempler.DRFSCM` provides an implementation of the semi-synthetic data generation procedure described in :ref:`[1, appendix F] <references main>`.
-
-**Please cite** :ref:`[1]<references class>` **if you use this procedure for your work.**
  
 ------
 

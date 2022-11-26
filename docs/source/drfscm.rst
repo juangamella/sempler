@@ -1,11 +1,11 @@
 sempler.DRFSCM
 ==============
 
-The :class:`sempler.DRFSCM` class implements a procedure to generate semi-synthetic data for causal discovery. The procedure is described in detail in :ref:`[1, appendix F]<references class>`.
+The :class:`sempler.DRFSCM` class implements a procedure to generate realistic semi-synthetic data for causal discovery. The procedure is described in detail in :ref:`[1, appendix E]<references class>`.
 
 **Please cite** :ref:`[1]<references class>` **if you use this procedure for your work.**
 
-As input, the procedure takes a directed acyclic graph over some variables and a dataset consisting of their observations under different environments. The data can also be "observational", i.e. from a single environment. The procedure then fits a non-parametric structural causal model (SCM), where the conditional distributions entailed by the graph are approximated via distributional random forests :ref:`[2]<references class>`. Once fitted, you can sample from this collection of forests to produce a new, semi-synthetic dataset that respects acyclicity, causal sufficiency, and the conditional independence relationships entailed by the given graph, while its marginal and conditional distributions closely resemble those of the original dataset :ref:`[1, figure 4]<references class>`.
+As input, the procedure takes a directed acyclic graph over some variables and a dataset consisting of their observations under different environments. The data can also be "observational", i.e. from a single environment. The procedure then fits a non-parametric Bayesian network, where the conditional distributions entailed by the graph are approximated via distributional random forests :ref:`[2]<references class>`. Once fitted, you can sample from this collection of forests to produce a new, semi-synthetic dataset that respects acyclicity, causal sufficiency, and the conditional independence relationships entailed by the given graph, while its marginal and conditional distributions closely resemble those of the original dataset :ref:`[1, figure 4]<references class>`.
 
 **Additional dependencies**
 
