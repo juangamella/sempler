@@ -17,7 +17,7 @@ Overview
 
 The semi-synthetic data generation procedure is implemented in the class :class:`sempler.DRFNet`.
 
-Additionally, you can generate purely synthetic data from general additive-noise models. Two classes are defined for this purpose.
+Additionally, you can generate purely synthetic data from general structural causal models with additive noise. Two classes are defined for this purpose.
 
 - :class:`sempler.ANM` is for general (acyclic) additive noise SCMs. Any assignment function is possible, as are the distributions of the noise terms.
 - :class:`sempler.LGANM` is for linear Gaussian SCMs. While this is also possible with :class:`sempler.ANM`, this class simplifies the interface and offers the additional functionality of sampling "in the population setting", i.e. by returning a symbolic gaussian distribution (see :func:`sempler.LGANM.sample` and :class:`sempler.NormalDistribution`).
