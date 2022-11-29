@@ -1,5 +1,7 @@
 # Sempler: generate realistic semi-synthetic data for causal discovery with known ground truth
 
+![Real and semi-synthetic data produced from the Sachs dataset](./docs/marginals.png)
+
 [Documentation at https://sempler.readthedocs.io/en/latest/]
 
 Sempler allows you to generate generate semi-synthetic data with known causal ground truth but distributions closely resembling those of a real data set of choice. It is one of the software contributions of the paper [*"Characterization and Greedy Learning of Gaussian Structural Causal Models under Unknown Interventions"*](<TODO: arxiv link>) by Juan L. Gamella, Armeen Taeb, Christina Heinze-Deml and Peter Bühlmann. You can find more details in Appendix E of the paper.
