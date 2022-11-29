@@ -1,24 +1,23 @@
 Welcome to sempler's documentation!
 ===================================
 
-Sempler allows you to generate generate semi-synthetic data with known causal ground truth but distributions closely resembling those of a real data set of choice. It is one of the software contributions of the paper `"Characterization and Greedy Learning of Gaussian Structural Causal Models under Unknown Interventions" <TODO: arxiv link>`__ by Juan L. Gamella, Armeen Taeb, Christina Heinze-Deml and Peter Bühlmann. You can find more details in Appendix F of the paper.
+Sempler allows you to generate generate semi-synthetic data with known causal ground truth but distributions closely resembling those of a real data set of choice. It is one of the software contributions of the paper `"Characterization and Greedy Learning of Gaussian Structural Causal Models under Unknown Interventions" <https://arxiv.org/abs/2211.14897>`__ by Juan L. Gamella, Armeen Taeb, Christina Heinze-Deml and Peter Bühlmann. You can find more details in Appendix F of the `paper <https://arxiv.org/pdf/2211.14897.pdf>`__.
 
 If you find this code useful, please consider citing:::
 
   @article{gamella2022characterization,
     title={Characterization and Greedy Learning of Gaussian Structural Causal Models under Unknown Interventions},
     author={Gamella, Juan L. and Taeb, Armeen and Heinze-Deml, Christina and B\"uhlmann, Peter},
+    journal={arXiv preprint arXiv:2211.14897},
     year={2022}
   }
 
 Overview
 --------
 
-The semi-synthetic data generation procedure is implemented in the class :class:`sempler.DRFSCM` (see [docs](https://sempler.readthedocs.io/en/latest/.)). A detailed explanation of the procedure can be found in :ref:`[1, appendix E] <references main>`.
+The semi-synthetic data generation procedure is implemented in the class :class:`sempler.DRFNet`.
 
 Additionally, you can generate purely synthetic data from general additive-noise models. Two classes are defined for this purpose.
-
-Two classes are defined for this purpose.
 
 - :class:`sempler.ANM` is for general (acyclic) additive noise SCMs. Any assignment function is possible, as are the distributions of the noise terms.
 - :class:`sempler.LGANM` is for linear Gaussian SCMs. While this is also possible with :class:`sempler.ANM`, this class simplifies the interface and offers the additional functionality of sampling "in the population setting", i.e. by returning a symbolic gaussian distribution (see :func:`sempler.LGANM.sample` and :class:`sempler.NormalDistribution`).
@@ -32,7 +31,7 @@ To allow for random generation of SCMs and interventional distributions, the mod
 References
 **********
 
-[1] Gamella, J.L, Taeb, A., Heinze-Deml, C., & Bühlmann, P. (2022). Characterization and greedy learning of Gaussian structural causal models under unknown noise interventions. `TODO <https://arxiv.org/abs/2005.14458>`__.
+[1] Gamella, J.L, Taeb, A., Heinze-Deml, C., & Bühlmann, P. (2022). Characterization and greedy learning of Gaussian structural causal models under unknown noise interventions. *arXiv preprint arXiv:2211.14897*, 2022.
 
 Versioning
 **********
@@ -66,7 +65,7 @@ About the Name
    self
    anm
    lganm
-   drfscm
+   drfnet
    normal_distribution
    generators
    

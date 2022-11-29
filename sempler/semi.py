@@ -94,6 +94,7 @@ def _bootstrap(data, n=None, random_state=None):
     sample = data[idx]
     return sample
 
+
 class BayesianNetwork:
     """Parent class implementing the basic input checks on behalf of the
     inheriting classes.
@@ -112,6 +113,7 @@ class BayesianNetwork:
     N : int
         The total number of observations (across all environments).
     """
+
     def __init__(self, graph, data, verbose=False):
         # Check inputs: graph
         if not isinstance(graph, np.ndarray):
@@ -134,7 +136,9 @@ class BayesianNetwork:
                     raise ValueError(_DATA_TYPE_ERROR)
                 # and the number of variables matches that in the graph
                 elif sample.shape[1] != graph.shape[1]:
-                    raise ValueError("graph and data have different number of variables")
+                    raise ValueError(
+                        "graph and data have different number of variables"
+                    )
 
         # Set parameters
         self.graph = (graph != 0).astype(int)
@@ -161,11 +165,11 @@ class BayesianNetwork:
 
 
 # --------------------------------------------------------------------
-# DRFSCM class
+# DRFNet class
 
 
-class DRFSCM(BayesianNetwork):
-    """Fit a non-parametric SCM with the given adjacency to the given
+class DRFNet(BayesianNetwork):
+    """Fit a non-parametric Bayesian network with the given adjacency to the
     data, modelling the conditionals through distributional random
     forests.
 
@@ -197,7 +201,7 @@ class DRFSCM(BayesianNetwork):
     >>> rng = np.random.default_rng(42)
     >>> data = [rng.uniform(size=(100, 5)) for _ in range(2)]
     >>> graph = sempler.generators.dag_avg_deg(p=5, k=2, random_state=42)
-    >>> scm = DRFSCM(graph, data)
+    >>> scm = DRFNet(graph, data)
     >>> scm.graph
     array([[0, 0, 1, 1, 0],
            [0, 0, 1, 0, 0],
@@ -207,6 +211,7 @@ class DRFSCM(BayesianNetwork):
 
 
     """
+
     def __init__(self, graph, data, verbose=False):
         super().__init__(graph, data, verbose)
 
@@ -219,20 +224,27 @@ class DRFSCM(BayesianNetwork):
         self._random_forests = np.empty((self.p, self.e), dtype=object)
         for i in range(self.p):
             parents = gnies.utils.pa(i, self.graph)
-            print("  node %d/%d - parents %s     " % (i + 1, self.p, parents)) if verbose else None
+            print(
+                "  node %d/%d - parents %s     " % (i + 1, self.p, parents)
+            ) if verbose else None
             # Don't fit a DRF if node is a source node
             if parents != set():
                 for k in range(self.e):
-                    print("    fitting environment %d/%d" %
-                          (k + 1, self.e), end="  \r") if verbose else None
+                    print(
+                        "    fitting environment %d/%d" % (k + 1, self.e), end="  \r"
+                    ) if verbose else None
                     # Using default values from DRF repository
-                    DRF = drf.drf(min_node_size=15, num_trees=2000, splitting_rule="FourierMMD")
+                    DRF = drf.drf(
+                        min_node_size=15, num_trees=2000, splitting_rule="FourierMMD"
+                    )
                     Y = pd.DataFrame(self._data[k][:, i])
                     X = pd.DataFrame(self._data[k][:, sorted(parents)])
                     DRF.fit(X, Y)
                     # print(DRF.info())
                     self._random_forests[i, k] = DRF
-        print("Done in %0.2f seconds           " % (time.time() - start)) if verbose else None
+        print(
+            "Done in %0.2f seconds           " % (time.time() - start)
+        ) if verbose else None
 
     def sample(self, n=None, random_state=None):
         """Generate a sample from the fitted SCM.
@@ -296,7 +308,9 @@ class DRFSCM(BayesianNetwork):
             for i in self._ordering:
                 if self._random_forests[i, k] is None:
                     # Node has no parents, generate a sample using bootstrapping
-                    sample[:, i] = _bootstrap(self._data[k][:, i], n[k], random_state=random_state)
+                    sample[:, i] = _bootstrap(
+                        self._data[k][:, i], n[k], random_state=random_state
+                    )
                 else:
                     parents = gnies.utils.pa(i, self.graph)
                     new_data = pd.DataFrame(sample[:, sorted(parents)])
@@ -308,11 +322,14 @@ class DRFSCM(BayesianNetwork):
 
 
 # To run the doctests
-if __name__ == '__main__':
+if __name__ == "__main__":
     import doctest
     import sempler.generators
+
     rng = np.random.default_rng(42)
     data = [rng.uniform(size=(100, 4)) for _ in range(2)]
     graph = sempler.generators.dag_avg_deg(4, 2, 1, 1, random_state=42)
-    scm = DRFSCM(graph, data)
-    doctest.testmod(extraglobs={'rng': rng, 'data': data, 'graph': graph, 'scm': scm}, verbose=True)
+    scm = DRFNet(graph, data)
+    doctest.testmod(
+        extraglobs={"rng": rng, "data": data, "graph": graph, "scm": scm}, verbose=True
+    )

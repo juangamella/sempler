@@ -36,6 +36,7 @@ import numpy as np
 
 import sempler.generators
 import sempler.semi
+
 # Tests for the DAG generation
 
 
@@ -48,20 +49,19 @@ def means(samples):
 
 
 class GaussianDistributionTests(unittest.TestCase):
-    
     def test_distances(self):
         p = 5
         i = 0
         W = sempler.generators.dag_avg_deg(p, 2.7, 0.5, 1, random_state=i)
         true_A = (W != 0).astype(int)
-        scm = sempler.LGANM(W, (1,2), (1,2))
+        scm = sempler.LGANM(W, (1, 2), (1, 2))
         n = 1000
         samples = [scm.sample(n)]
         samples += [scm.sample(n, noise_interventions={0: (10, 4)})]
         sample_covs = covs(samples)
         sample_means = means(samples)
         # Fit DRF SCM with true graph
-        drf_scm = sempler.semi.DRFSCM(true_A, samples, verbose=True)
+        drf_scm = sempler.semi.DRFNet(true_A, samples, verbose=True)
         semi_sample = drf_scm.sample()
         cov_diffs = sample_covs - covs(semi_sample)
         mean_diffs = sample_means - means(semi_sample)
