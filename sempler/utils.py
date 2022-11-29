@@ -32,8 +32,6 @@
 """
 
 import numpy as np
-import networkx as nx
-import matplotlib.pyplot as plt
 import itertools
 
 
@@ -101,52 +99,94 @@ def nonzero(A, tol=1e-12):
     return np.where(np.abs(A) > tol)[0]
 
 
-def graph_info(i, W, interventions=None):
-    """Returns the parents, children, parents of children and markov
-    blanket of variable i in DAG W, using the graph structure
+# def graph_info(i, W, interventions=None):
+#     """Returns the parents, children, parents of children and markov
+#     blanket of variable i in DAG W, using the graph structure
+#     """
+#     G = nx.from_numpy_array(W, create_using=nx.DiGraph)
+#     parents = set(G.predecessors(i))
+#     children = set(G.successors(i))
+#     parents_of_children = set()
+#     for child in children:
+#         parents_of_children.update(G.predecessors(child))
+#     if len(children) > 0:
+#         parents_of_children.remove(i)
+#     mb = parents.union(children, parents_of_children)
+#     return (parents, children, parents_of_children, mb)
+
+
+# def stable_blanket(i, W, interventions=set()):
+#     """Return the stable blanket using the graph structure"""
+#     G = nx.from_numpy_array(W, create_using=nx.DiGraph)
+#     parents = set(G.predecessors(i))
+#     children = set(G.successors(i))
+#     unstable_descendants = set()
+#     for j in interventions:
+#         if j in children:
+#             unstable_descendants.update({j})
+#             unstable_descendants.update(nx.algorithms.dag.descendants(G, j))
+#     stable_children = set.difference(children, unstable_descendants)
+#     parents_of_stable_children = set()
+#     for child in stable_children:
+#         parents_of_stable_children.update(G.predecessors(child))
+#     if len(stable_children) > 0:
+#         parents_of_stable_children.remove(i)
+#     sb = set.union(parents, stable_children, parents_of_stable_children)
+#     return sb
+
+
+# def descendants(i, W):
+#     """Return the descendants of a node using the graph structure"""
+#     G = nx.from_numpy_array(W, create_using=nx.DiGraph)
+#     return nx.algorithms.dag.descendants(G, i)
+
+
+# def ancestors(i, W):
+#     """Return the ancestors of a node using the graph structure"""
+#     G = nx.from_numpy_array(W, create_using=nx.DiGraph)
+#     return nx.algorithms.dag.ancestors(G, i)
+
+
+def ancestors(i, A):
+    # TODO: This will break if Python's max stack depth is reached
+    """The ancestors of i in A.
+
+    Parameters
+    ----------
+    A : np.array
+        the adjacency matrix of the graph, where A[i,j] != 0 => i -> j
+        and A[i,j] != 0 & A[j,i] != 0 => i - j.
+
+    Returns
+    -------
+    nodes : set of ints
+        the ancestor nodes
     """
-    G = nx.from_numpy_array(W, create_using=nx.DiGraph)
-    parents = set(G.predecessors(i))
-    children = set(G.successors(i))
-    parents_of_children = set()
-    for child in children:
-        parents_of_children.update(G.predecessors(child))
-    if len(children) > 0:
-        parents_of_children.remove(i)
-    mb = parents.union(children, parents_of_children)
-    return (parents, children, parents_of_children, mb)
+    ancestors = pa(i, A)
+    for j in pa(i, A):
+        ancestors |= an(j, A)
+    return ancestors
 
 
-def stable_blanket(i, W, interventions=set()):
-    """Return the stable blanket using the graph structure"""
-    G = nx.from_numpy_array(W, create_using=nx.DiGraph)
-    parents = set(G.predecessors(i))
-    children = set(G.successors(i))
-    unstable_descendants = set()
-    for j in interventions:
-        if j in children:
-            unstable_descendants.update({j})
-            unstable_descendants.update(nx.algorithms.dag.descendants(G, j))
-    stable_children = set.difference(children, unstable_descendants)
-    parents_of_stable_children = set()
-    for child in stable_children:
-        parents_of_stable_children.update(G.predecessors(child))
-    if len(stable_children) > 0:
-        parents_of_stable_children.remove(i)
-    sb = set.union(parents, stable_children, parents_of_stable_children)
-    return sb
+def descendants(i, A):
+    # TODO: This will break if Python's max stack depth is reached
+    """The descendants of i in A.
 
+    Parameters
+    ----------
+    A : np.array
+        the adjacency matrix of the graph, where A[i,j] != 0 => i -> j
+        and A[i,j] != 0 & A[j,i] != 0 => i - j.
 
-def descendants(i, W):
-    """Return the descendants of a node using the graph structure"""
-    G = nx.from_numpy_array(W, create_using=nx.DiGraph)
-    return nx.algorithms.dag.descendants(G, i)
-
-
-def ancestors(i, W):
-    """Return the ancestors of a node using the graph structure"""
-    G = nx.from_numpy_array(W, create_using=nx.DiGraph)
-    return nx.algorithms.dag.ancestors(G, i)
+    Returns
+    -------
+    nodes : set of ints
+        the descendant nodes
+    """
+    descendants = {i}
+    for j in ch(i, A):
+        descendants |= desc(j, A)
+    return descendants
 
 
 def is_dag(A):
@@ -226,71 +266,12 @@ def edge_weights(W):
     return edge_weights
 
 
-def plot_graph(W, labels=None, weights=False, block=False):
-    """Plot a graph with weight matrix W."""
-    G = nx.from_numpy_array(W, create_using=nx.DiGraph)
-    pos = nx.drawing.layout.shell_layout(G, scale=0.5)
-    p = len(W)
-    if labels is None:
-        node_labels = dict(zip(np.arange(p), map(lambda i: "$X_{%d}$" % i, range(p))))
-    else:
-        node_labels = dict(zip(np.arange(p), labels))
-    # Plot
-    fig = plt.figure()
-    params = {'node_color': 'white',
-              'edgecolors': 'black',
-              'node_size': 900,
-              'linewidths': 1.5,
-              'width': 1.5,
-              'arrowsize': 20,
-              'arrowstyle': '->',
-              'min_target_margin': 10,
-              'labels': node_labels}
-    nx.draw(G, pos, **params)
-    # Edge weights
-    if weights:
-        formatted = dict((e, "%0.3f" % w) for (e, w) in edge_weights(W).items())
-        nx.draw_networkx_edge_labels(G, pos, formatted, font_color='red')
-    fig.set_facecolor("white")
-    plt.show(block=block)
-
-
-def plot_matrix(A, ax=None, vmin=-3, vmax=3, formt="%0.2f", thresh=1e-16, block=False):
-    """Plot a heatmap for the given matrix A.
-
-    Parameters
-    ----------
-    A : numpy.ndarray
-        The matrix to plot.
-    ax : matplotlib.pyplot.axis, optional
-        The axis to plot on; if None, create a new figure.
-    vmin : float, default=-3
-        The lower threshold for color saturation.
-    vmax : float, default=3
-        The upper threshold for color saturation.
-    formt : string, default="%0.2f"
-        The format with which to print the values of the matrix on top
-        of the corresponding cell.
-    thresh : float, default=1e-16
-        Elements of the matrix which are lower than the threshold in
-        absolute value are plotted as a zero (i.e. white, no text)
-    """
-    if ax is None:
-        plt.figure()
-        ax = plt.gca()
-    ax.imshow(A, vmin=vmin, vmax=vmax, cmap='bwr')
-    for i in range(len(A)):
-        for j in range(len(A)):
-            if A[i, j] != 0:
-                ax.text(j, i, formt % A[i, j], ha='center', va='center')
-    plt.show(block=block)
-
-
 def allclose(A, B, rtol=1e-5, atol=1e-8):
     """Use np.allclose to compare, but relative tolerance is relative to
     the smallest element compared
     """
     return np.allclose(np.maximum(A, B), np.minimum(A, B), rtol, atol)
+
 
 # --------------------------------------------------------------------
 # Graph functions for PDAGS
@@ -404,156 +385,122 @@ def same_normal(sample_a, sample_b, atol=5e-2, debug=False):
     """
     mean_a, mean_b = np.mean(sample_a, axis=0), np.mean(sample_b, axis=0)
     cov_a, cov_b = np.cov(sample_a, rowvar=False), np.cov(sample_b, rowvar=False)
-    print("MEANS\n%s\n%s\n\nCOVARIANCES\n%s\n%s" %
-          (mean_a, mean_b, cov_a, cov_b)) if debug else None
+    print(
+        "MEANS\n%s\n%s\n\nCOVARIANCES\n%s\n%s" % (mean_a, mean_b, cov_a, cov_b)
+    ) if debug else None
     means = np.allclose(mean_a, mean_b, atol=atol)
     covariances = np.allclose(cov_a, cov_b, atol=atol)
     return means and covariances
+
 
 # Example graphs
 
 
 def eg1():
-    W = np.array([[0, 1, -1, 0, 0],
-                  [0, 0, 0, 1, 0],
-                  [0, 0, 0, 1, 0],
-                  [0, 0, 0, 0, 1],
-                  [0, 0, 0, 0, 0]])
-    markov_blankets = [[1, 2],
-                       [0, 3, 2],
-                       [0, 3, 1],
-                       [1, 2, 4],
-                       [3]]
-    parents = [[],
-               [0],
-               [0],
-               [1, 2],
-               [3]]
+    W = np.array(
+        [
+            [0, 1, -1, 0, 0],
+            [0, 0, 0, 1, 0],
+            [0, 0, 0, 1, 0],
+            [0, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0],
+        ]
+    )
+    markov_blankets = [[1, 2], [0, 3, 2], [0, 3, 1], [1, 2, 4], [3]]
+    parents = [[], [0], [0], [1, 2], [3]]
     return W, parents, markov_blankets
 
 
 def eg2():
-    W = np.array([[0, 1, -1, 0, 0, 0],
-                  [0, 0, 0, 1, 0, 0],
-                  [0, 0, 0, 1, 0, 0],
-                  [0, 0, 0, 0, 1, 0],
-                  [0, 0, 0, 0, 0, 0],
-                  [0, 0, 0, 0, 1, 0]])
-    markov_blankets = [[1, 2],
-                       [0, 3, 2],
-                       [0, 3, 1],
-                       [1, 2, 4, 5],
-                       [3, 5],
-                       [3, 4]]
-    parents = [[],
-               [0],
-               [0],
-               [1, 2],
-               [3, 5],
-               []]
+    W = np.array(
+        [
+            [0, 1, -1, 0, 0, 0],
+            [0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 1, 0],
+            [0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0],
+        ]
+    )
+    markov_blankets = [[1, 2], [0, 3, 2], [0, 3, 1], [1, 2, 4, 5], [3, 5], [3, 4]]
+    parents = [[], [0], [0], [1, 2], [3, 5], []]
     return W, parents, markov_blankets
 
 
 def eg3():
-    W = np.array([[0, 1, -1, 0, 0, 0, 0, 0],
-                  [0, 0, 0, 1, 0, 0, 0, 0],
-                  [0, 0, 0, 1, 0, 0, 0, 0],
-                  [0, 0, 0, 0, 1, 0, 0, 0],
-                  [0, 0, 0, 0, 0, 0, 0, 1],
-                  [0, 0, 0, 0, 1, 0, 1, 0],
-                  [0, 0, 0, 0, 0, 0, 0, 0],
-                  [0, 0, 0, 0, 0, 0, 0, 0]])
-    markov_blankets = [[1, 2],
-                       [0, 3, 2],
-                       [0, 3, 1],
-                       [1, 2, 4, 5],
-                       [3, 5, 7],
-                       [3, 4, 6],
-                       [5],
-                       [4]]
-    parents = [[],
-               [0],
-               [0],
-               [1, 2],
-               [3, 5],
-               [],
-               [5],
-               [4]]
+    W = np.array(
+        [
+            [0, 1, -1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 1, 0, 0, 0, 0],
+            [0, 0, 0, 1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 1],
+            [0, 0, 0, 0, 1, 0, 1, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+        ]
+    )
+    markov_blankets = [
+        [1, 2],
+        [0, 3, 2],
+        [0, 3, 1],
+        [1, 2, 4, 5],
+        [3, 5, 7],
+        [3, 4, 6],
+        [5],
+        [4],
+    ]
+    parents = [[], [0], [0], [1, 2], [3, 5], [], [5], [4]]
     return W, parents, markov_blankets
 
 
 def eg4():
-    W = np.array([[0, 0, 1, 0],
-                  [0, 0, 1, 0],
-                  [0, 0, 0, 1],
-                  [0, 0, 0, 0]])
-    markov_blankets = [[1, 2],
-                       [0, 2],
-                       [0, 1, 3],
-                       [2]]
-    parents = [[],
-               [],
-               [0, 1],
-               [2]]
+    W = np.array([[0, 0, 1, 0], [0, 0, 1, 0], [0, 0, 0, 1], [0, 0, 0, 0]])
+    markov_blankets = [[1, 2], [0, 2], [0, 1, 3], [2]]
+    parents = [[], [], [0, 1], [2]]
     return W, parents, markov_blankets
 
 
 def eg5():
-    W = np.array([[0., 1., 0., 0., 0., 0., 0., 0.],
-                  [0., 0., 0., 0., 0., 0., 0., 0.],
-                  [0., 1., 0., 1., 0., 1., 0., 0.],
-                  [0., 1., 0., 0., 0., 1., 1., 0.],
-                  [1., 0., 0., 0., 0., 0., 1., 0.],
-                  [0., 0., 0., 0., 0., 0., 0., 0.],
-                  [1., 0., 0., 0., 0., 0., 0., 0.],
-                  [1., 0., 0., 0., 1., 1., 0., 0.]])
+    W = np.array(
+        [
+            [0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0],
+            [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0],
+        ]
+    )
     ordering = np.array([7, 4, 2, 3, 6, 5, 0, 1])
-    parents = [[4, 6, 7],
-               [0, 2, 3],
-               [],
-               [2],
-               [7],
-               [2, 3, 7],
-               [3, 4],
-               []]
-    children = [[1],
-                [],
-                [1, 3, 5],
-                [1, 5, 6],
-                [0, 6],
-                [],
-                [0],
-                [0, 4, 5]]
-    markov_blankets = [[4, 6, 7, 1, 2, 3],
-                       [0, 2, 3],
-                       [1, 3, 5, 0, 7],
-                       [0, 1, 2, 4, 5, 6, 7],
-                       [7, 0, 6, 7, 3],
-                       [2, 3, 7],
-                       [3, 4, 0, 7],
-                       [0, 4, 5, 2, 3, 6]]
+    parents = [[4, 6, 7], [0, 2, 3], [], [2], [7], [2, 3, 7], [3, 4], []]
+    children = [[1], [], [1, 3, 5], [1, 5, 6], [0, 6], [], [0], [0, 4, 5]]
+    markov_blankets = [
+        [4, 6, 7, 1, 2, 3],
+        [0, 2, 3],
+        [1, 3, 5, 0, 7],
+        [0, 1, 2, 4, 5, 6, 7],
+        [7, 0, 6, 7, 3],
+        [2, 3, 7],
+        [3, 4, 0, 7],
+        [0, 4, 5, 2, 3, 6],
+    ]
     return W, parents, markov_blankets
 
 
 def eg6():
-    W = np.array([[0, 0, 1, 0, 1],
-                  [0, 0, 1, 0, 1],
-                  [0, 0, 0, 1, 0],
-                  [0, 0, 0, 0, 1],
-                  [0, 0, 0, 0, 0]])
-    parents = [[],
-               [],
-               [0, 1],
-               [2],
-               [0, 1, 3]]
-    children = [[2],
-                [2],
-                [3],
-                [4],
-                []]
-    markov_blankets = [[1, 2, 3, 4],
-                       [0, 2, 3, 4],
-                       [0, 1, 3],
-                       [2, 4, 0, 1],
-                       [0, 1, 3]]
+    W = np.array(
+        [
+            [0, 0, 1, 0, 1],
+            [0, 0, 1, 0, 1],
+            [0, 0, 0, 1, 0],
+            [0, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0],
+        ]
+    )
+    parents = [[], [], [0, 1], [2], [0, 1, 3]]
+    children = [[2], [2], [3], [4], []]
+    markov_blankets = [[1, 2, 3, 4], [0, 2, 3, 4], [0, 1, 3], [2, 4, 0, 1], [0, 1, 3]]
     return W, parents, markov_blankets

@@ -1,3 +1,6 @@
+v0.2.5, 2022-11-29
+-- Moved plotting functions to separate sempler.plot module; networkx and matplotlib are now only optional dependencies.
+-- New module sempler.semi containing the semi-synthetic data generation procedure using random forests.
 v0.2.4, 2022-07-14
 -- Also allow setting the random state for the sampling of means/variances in the initialization of the LGANM class
 v0.2.3, 2022-06-22
