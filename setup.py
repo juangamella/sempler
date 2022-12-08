@@ -2,10 +2,10 @@ import setuptools
 
 setuptools.setup(
     name="sempler",
-    version="0.2.5",
+    version="0.2.6",
     author="Juan L Gamella",
     author_email="juangamella@gmail.com",
-    packages=["sempler", "sempler.test"],
+    packages=["sempler", "sempler.test", "drf"],
     scripts=[],
     url="https://github.com/juangamella/sempler",
     license="BSD 3-Clause License",
