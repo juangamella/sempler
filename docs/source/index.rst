@@ -15,7 +15,7 @@ If you find this code useful, please consider citing:::
 Overview
 --------
 
-The semi-synthetic data generation procedure is implemented in the class :class:`sempler.DRFNet`. For now, only an `R` implementation of Distributional Random Forests [2] is available. Thus, to run the procedure you will additionally need
+The semi-synthetic data generation procedure is implemented in the class :class:`sempler.DRFNet`. For now, only an `R` implementation of distributional random forests [2] is available. Thus, to run the procedure you will additionally need
 
 - an `R` installation; you can find an installation guide `here <https://rstudio-education.github.io/hopr/starting.html>`__
 - the `R` package ``drf``, which you can install by typing ``install.packages("drf")`` in an R terminal

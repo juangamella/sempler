@@ -16,7 +16,7 @@ As input, the procedure takes a directed acyclic graph over some variables and a
 
 **Additional R dependencies**
 
-For now, only an `R` implementation of Distributional Random Forests [2] is available. Thus, to run the procedure you will additionally need
+For now, only an `R` implementation of distributional random forests [2] is available. Thus, to run the procedure you will additionally need
 
 - an `R` installation; you can find an installation guide `here <https://rstudio-education.github.io/hopr/starting.html>`__
 - the `R` package ``drf``, which you can install by typing ``install.packages("drf")`` in an R terminal
