@@ -9,7 +9,11 @@ pandas2ri.activate()
 
 from rpy2.robjects.packages import importr
 base_r_package = importr('base')
-drf_r_package = importr('drf')
+try:
+    drf_r_package = importr('drf')
+except rpy2.robjects.packages.PackageNotInstalledError:
+    print('WARNING: The R package "drf" is not installed')
+    
 
 def convert_to_df(X):
     if type(X) == np.ndarray:
