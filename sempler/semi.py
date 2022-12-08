@@ -247,7 +247,7 @@ class DRFNet(BayesianNetwork):
         ) if verbose else None
 
     def sample(self, n=None, random_state=None):
-        """Generate a sample from the fitted SCM.
+        """Generate a sample from the fitted Bayesian network.
 
         Parameters
         ----------
