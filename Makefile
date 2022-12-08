@@ -23,5 +23,6 @@ examples:
 	PYTHONPATH=./ python docs/anm_example.py
 	PYTHONPATH=./ python docs/lganm_example.py
 	PYTHONPATH=./ python docs/normal_distribution_example.py
+	PYTHONPATH=./ python docs/semi_example.py	
 
 .PHONY: test, tests, examples, doctests
