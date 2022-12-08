@@ -12,8 +12,7 @@ base_r_package = importr('base')
 try:
     drf_r_package = importr('drf')
 except rpy2.robjects.packages.PackageNotInstalledError:
-    print('WARNING: The R package "drf" is not installed')
-    
+    print('WARNING: The R package "drf" is not installed. Type "install.packages("drf")" into an R shell to install it.')
 
 def convert_to_df(X):
     if type(X) == np.ndarray:
