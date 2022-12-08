@@ -12,6 +12,7 @@ endif
 
 # Run the doctests
 doctests:
+	PYTHONPATH=./ python sempler/semi.py
 	PYTHONPATH=./ python sempler/anm.py
 	PYTHONPATH=./ python sempler/lganm.py
 	PYTHONPATH=./ python sempler/normal_distribution.py

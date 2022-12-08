@@ -39,7 +39,7 @@ Please cite it if you use this procedure in your work.
 
 import numpy as np
 import drf
-import gnies.utils
+import sempler.utils as utils
 import copy
 import pandas as pd
 import time
@@ -120,7 +120,7 @@ class BayesianNetwork:
             raise TypeError(_GRAPH_TYPE_ERROR)
         elif graph.ndim != 2:
             raise ValueError(_GRAPH_TYPE_ERROR)
-        elif not gnies.utils.is_dag(graph):
+        elif not sempler.utils.is_dag(graph):
             raise ValueError("graph is not a DAG.")
 
         # Check inputs: data
@@ -147,7 +147,7 @@ class BayesianNetwork:
         self.e = len(self._data)
         self.Ns = [len(sample) for sample in self._data]
         self.N = np.sum(self.Ns)
-        self._ordering = gnies.utils.topological_ordering(self.graph)
+        self._ordering = sempler.utils.topological_ordering(self.graph)
 
     def sample(self, n):
         # Check input: n
@@ -201,8 +201,8 @@ class DRFNet(BayesianNetwork):
     >>> rng = np.random.default_rng(42)
     >>> data = [rng.uniform(size=(100, 5)) for _ in range(2)]
     >>> graph = sempler.generators.dag_avg_deg(p=5, k=2, random_state=42)
-    >>> scm = DRFNet(graph, data)
-    >>> scm.graph
+    >>> network = DRFNet(graph, data)
+    >>> network.graph
     array([[0, 0, 1, 1, 0],
            [0, 0, 1, 0, 0],
            [0, 0, 0, 0, 0],
@@ -223,7 +223,7 @@ class DRFNet(BayesianNetwork):
             print("Fitting distributional random forests") if verbose else None
         self._random_forests = np.empty((self.p, self.e), dtype=object)
         for i in range(self.p):
-            parents = gnies.utils.pa(i, self.graph)
+            parents = sempler.utils.pa(i, self.graph)
             print(
                 "  node %d/%d - parents %s     " % (i + 1, self.p, parents)
             ) if verbose else None
@@ -279,7 +279,7 @@ class DRFNet(BayesianNetwork):
         If not specifying a sample size, the sample sizes in the new
         data match those of the original:
 
-        >>> new_data = scm.sample()
+        >>> new_data = network.sample()
         >>> len(new_data)
         2
         >>> [len(sample) for sample in new_data]
@@ -287,10 +287,10 @@ class DRFNet(BayesianNetwork):
 
         Specifying the sample sizes:
 
-        >>> new_data = scm.sample(3)
+        >>> new_data = network.sample(3)
         >>> [len(sample) for sample in new_data]        
         [3, 3]
-        >>> new_data = scm.sample([2, 3])
+        >>> new_data = network.sample([2, 3])
         >>> [len(sample) for sample in new_data]
         [2, 3]
         """
@@ -312,7 +312,7 @@ class DRFNet(BayesianNetwork):
                         self._data[k][:, i], n[k], random_state=random_state
                     )
                 else:
-                    parents = gnies.utils.pa(i, self.graph)
+                    parents = sempler.utils.pa(i, self.graph)
                     new_data = pd.DataFrame(sample[:, sorted(parents)])
                     forest = self._random_forests[i, k]
                     output = forest.predict(n=1, functional="sample", newdata=new_data)
@@ -329,7 +329,7 @@ if __name__ == "__main__":
     rng = np.random.default_rng(42)
     data = [rng.uniform(size=(100, 4)) for _ in range(2)]
     graph = sempler.generators.dag_avg_deg(4, 2, 1, 1, random_state=42)
-    scm = DRFNet(graph, data)
+    network = DRFNet(graph, data)
     doctest.testmod(
-        extraglobs={"rng": rng, "data": data, "graph": graph, "scm": scm}, verbose=True
+        extraglobs={"rng": rng, "data": data, "graph": graph, "network": network}, verbose=True
     )

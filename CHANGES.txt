@@ -1,3 +1,6 @@
+v0.2.7, 2022-12-08
+-- Fixed bad import in sempler.semi
+-- Added pandas and rpy2 as mandatory dependencies
 v0.2.6, 2022-12-08
 -- Added drf package to setup index
 v0.2.5, 2022-11-29
