@@ -39,7 +39,7 @@ Please cite it if you use this procedure in your work.
 
 import numpy as np
 import drf
-import sempler.utils as utils
+import sempler.utils
 import copy
 import pandas as pd
 import time
