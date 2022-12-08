@@ -14,13 +14,12 @@ The :class:`sempler.DRFNet` class implements a procedure to generate realistic s
 
 As input, the procedure takes a directed acyclic graph over some variables and a dataset consisting of their observations under different environments. The data can also be "observational", that is, from a single environment. The procedure then fits a non-parametric Bayesian network, where the conditional distributions entailed by the graph are approximated via distributional random forests :ref:`[2]<references class>`. Once fitted, you can sample from this collection of forests to produce a new, semi-synthetic dataset that respects acyclicity, causal sufficiency, and the conditional independence relationships entailed by the given graph, while its marginal and conditional distributions closely resemble those of the original dataset :ref:`[1, figure 4]<references class>`.
 
-**Additional dependencies**
+**Additional R dependencies**
 
-To run this procedure you will need additional dependencies, which are not required for the rest of sempler's functionality. In particular,
+For now, only an `R` implementation of Distributional Random Forests [2] is available. Thus, to run the procedure you will additionally need
 
-- you will need an installation of `R`; you can find an installation guide `here <https://rstudio-education.github.io/hopr/starting.html>`__
+- an `R` installation; you can find an installation guide `here <https://rstudio-education.github.io/hopr/starting.html>`__
 - the `R` package ``drf``, which you can install by typing ``install.packages("drf")`` in an R terminal
-- the python packages ``pandas`` and ``rpy2``, which you can install by executing ``pip install rpy2 pandas`` in a suitable shell
 
 The class is documented below.
   

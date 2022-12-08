@@ -12,6 +12,8 @@ build:
     python: "3.8"
   apt_packages:
     - r-base
+  commands:
+    - Rscript install_drf.R
 
 python:
    install:
