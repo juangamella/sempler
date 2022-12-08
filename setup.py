@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="sempler",
-    version="0.2.7",
+    version="0.2.8",
     author="Juan L Gamella",
     author_email="juangamella@gmail.com",
     packages=["sempler", "sempler.test", "drf"],
@@ -12,5 +12,5 @@ setuptools.setup(
     description="Sample from general structural causal models (SCMs).",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    install_requires=["numpy>=1.17.0", "pandas", "rpy2"],
+    install_requires=["numpy>=1.17.0", "pandas>=1.2.1", "rpy2>=3.4.1"],
 )

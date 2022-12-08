@@ -176,12 +176,13 @@ class DRFNet(BayesianNetwork):
     Parameters
     ----------
     graph : numpy.ndarray
-        Two dimensional array representing a DAG connectivity,
+        Two dimensional array representing the desired ground truth,
         where `graph[i,j] != 0` implies the edge `i -> j`.
     data : list of numpy.ndarray
-        List of two-dimensional arrays containing the samples from
-        each environment, where rows correspond to observations
-        and columns to variables.
+        The data to which the Bayesian network will be fitted, as a list
+        of two-dimensional arrays containing the samples from each
+        environment, where rows correspond to observations and columns
+        to variables.
     verbose : bool, default=False
         If debugging traces should be printed.
 
@@ -208,7 +209,6 @@ class DRFNet(BayesianNetwork):
            [0, 0, 0, 0, 0],
            [0, 0, 1, 0, 1],
            [0, 0, 0, 0, 0]])
-
 
     """
 
