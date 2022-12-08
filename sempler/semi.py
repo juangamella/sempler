@@ -39,7 +39,7 @@ Please cite it if you use this procedure in your work.
 
 import numpy as np
 import drf
-import sempler.utils as utils
+import sempler.utils
 import copy
 import pandas as pd
 import time
@@ -247,7 +247,7 @@ class DRFNet(BayesianNetwork):
         ) if verbose else None
 
     def sample(self, n=None, random_state=None):
-        """Generate a sample from the fitted SCM.
+        """Generate a sample from the fitted Bayesian network.
 
         Parameters
         ----------

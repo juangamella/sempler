@@ -1,3 +1,6 @@
+v0.2.9, 2022-12-08
+-- Adapted docstrings
+-- Fixed bug in sempler.semi
 v0.2.8, 2022-12-08
 -- Fixed issues with readthedocs build: in drf/code.py, do not break if R package "drf" is not installed
 v0.2.7, 2022-12-08
