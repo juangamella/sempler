@@ -10,7 +10,8 @@ build:
   os: ubuntu-20.04
   tools:
     python: "3.8"
-    R: "3.6.1"
+  apt_packages:
+    - r-base
 
 python:
    install:
