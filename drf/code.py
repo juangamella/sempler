@@ -1,18 +1,23 @@
 import pandas as pd
 import numpy as np
 
-import rpy2.robjects as ro
-import rpy2.robjects.numpy2ri
-rpy2.robjects.numpy2ri.activate()
-from rpy2.robjects import pandas2ri
-pandas2ri.activate()
+try:   
+    import rpy2.robjects as ro
+    import rpy2.robjects.numpy2ri
+    from rpy2.robjects import pandas2ri
+    from rpy2.robjects.packages import importr
+    RPY2_INSTALLED = True
 
-from rpy2.robjects.packages import importr
-base_r_package = importr('base')
-try:
-    drf_r_package = importr('drf')
-except rpy2.robjects.packages.PackageNotInstalledError:
-    print('WARNING: The R package "drf" is not installed. Type "install.packages("drf")" into an R shell to install it.')
+except ImportError:
+    RPY2_INSTALLED = False
+
+if RPY2_INSTALLED:
+    try:
+        base_r_package = importr('base')
+        drf_r_package = importr('drf')
+        DRF_INSTALLED = True
+    except rpy2.robjects.packages.PackageNotInstalledError:
+        DRF_INSTALLED = False
 
 def convert_to_df(X):
     if type(X) == np.ndarray:
@@ -66,6 +71,17 @@ class predict_output:
 class drf:
     def __init__(self, **fit_params): # ok
         self.fit_params = fit_params
+        
+        if not RPY2_INSTALLED:
+            raise ValueError("The python package `rpy2` is requires to use the `drf` package. Type `pip install rpy2` into a terminal to install it.")  
+
+        if not DRF_INSTALLED:
+            raise ValueError("The R package `drf` is requires to use the `drf` package. Type `install.packages('drf')` into an R terminal to install it.")
+
+        rpy2.robjects.numpy2ri.activate()       
+        pandas2ri.activate()
+
+        
 
     def fit(self, X, Y): # ok
         X = convert_to_df(X)
