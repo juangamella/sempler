@@ -4,7 +4,7 @@
 
 [Documentation at https://sempler.readthedocs.io/en/latest/]
 
-Sempler allows you to generate generate semi-synthetic data with known causal ground truth but distributions closely resembling those of a real data set of choice. It is one of the software contributions of the paper [*"Characterization and Greedy Learning of Gaussian Structural Causal Models under Unknown Interventions"*](https://arxiv.org/abs/2211.14897) by Juan L. Gamella, Armeen Taeb, Christina Heinze-Deml and Peter Bühlmann. You can find more details in Appendix E of the paper.
+Sempler allows you to generate synthetic data from SCMs and semi-synthetic data with known causal ground truth but distributions closely resembling those of a real data set of choice. It is one of the software contributions of the paper [*"Characterization and Greedy Learning of Gaussian Structural Causal Models under Unknown Interventions"*](https://arxiv.org/abs/2211.14897) by Juan L. Gamella, Armeen Taeb, Christina Heinze-Deml and Peter Bühlmann. You can find more details in Appendix E of the paper.
 
 If you find this code useful, please consider citing:
 
@@ -28,10 +28,22 @@ Additionally, you can generate purely synthetic data from general additive-noise
 To allow for random generation of SCMs and interventional distributions, the module `sempler.generators` contains functions to sample random DAGs and intervention targets.
 
 ### Installation
-You can clone this repo or install using pip:
+
+You can clone this repo or install using pip. To install sempler in its most basic form, i.e. to generate purely synthetic data with `sempler.ANM` and `sempler.LGANM`, simply run
 ```
 pip install sempler
 ```
+
+To install the additional dependencies needed for the semi-synthetic data generation procedure, run
+
+```
+pip install sempler[DRFNet]
+```
+
+You will also need:
+- an `R` installation; you can find an installation guide [here](https://rstudio-education.github.io/hopr/starting.html)
+- the `R` package `drf`, which you can install by typing `install.packages("drf")` in an R terminal
+
 
 Sempler is still at its infancy and its API is subject to change. Non backward-compatible changes to the API are reflected by a change to the minor or major version number,
 
