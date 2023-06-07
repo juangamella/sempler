@@ -1,4 +1,4 @@
-# Sempler: generate realistic semi-synthetic data for causal discovery with known ground truth
+# Sempler: generate synthetic and realistic semi-synthetic data with known ground truth for causal discovery
 
 ![Real and semi-synthetic data produced from the Sachs dataset](./docs/marginals.png)
 
@@ -18,7 +18,7 @@ If you find this code useful, please consider citing:
 
 ## Overview
 
-The semi-synthetic data generation procedure is implemented in the class `sempler.DRFSCM` (see [docs](https://sempler.readthedocs.io/en/latest/.)). A detailed explanation of the procedure can be found in Appendix E of the [paper](https://arxiv.org/abs/2211.14897).
+The semi-synthetic data generation procedure is implemented in the class `sempler.DRFNet` (see [docs](https://sempler.readthedocs.io/en/latest/.)). A detailed explanation of the procedure can be found in Appendix E of the [paper](https://arxiv.org/abs/2211.14897).
 
 Additionally, you can generate purely synthetic data from general additive-noise models. Two classes are defined for this purpose.
 
