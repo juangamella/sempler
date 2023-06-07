@@ -1,3 +1,6 @@
+v0.2.11, 2023-06-07
+-- Minor changes to README
+-- Added drf package into the package list
 v0.2.10, 2023-06-07
 -- Dependencies (R and rpy2) for sempler.semi module (containing sempler.DRFNet class) are now optional; updated relevant documentation.
 v0.2.9, 2022-12-08
