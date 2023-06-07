@@ -15,15 +15,17 @@ If you find this code useful, please consider citing:::
 Overview
 --------
 
-The semi-synthetic data generation procedure is implemented in the class :class:`sempler.DRFNet`. For now, only an `R` implementation of distributional random forests [2] is available. Thus, to run the procedure you will additionally need
-
-- an `R` installation; you can find an installation guide `here <https://rstudio-education.github.io/hopr/starting.html>`__
-- the `R` package ``drf``, which you can install by typing ``install.packages("drf")`` in an R terminal
-
-Sempler also allows you can generate purely synthetic data from general structural causal models with additive noise. Two classes are defined for this purpose.
+Sempler allows you to generate purely synthetic data from general structural causal models with additive noise. Two classes are defined for this purpose.
 
 - :class:`sempler.ANM` is for general (acyclic) additive noise SCMs. Any assignment function is possible, as are the distributions of the noise terms.
 - :class:`sempler.LGANM` is for linear Gaussian SCMs. While this is also possible with :class:`sempler.ANM`, this class simplifies the interface and offers the additional functionality of sampling "in the population setting", i.e. by returning a symbolic gaussian distribution (see :func:`sempler.LGANM.sample` and :class:`sempler.NormalDistribution`).
+
+The semi-synthetic data generation procedure is implemented in the class :class:`sempler.DRFNet`. For now, only an `R` implementation of distributional random forests [2] is available. Thus, to run the procedure you will need some additional dependencies:
+
+- an `R` installation; you can find an installation guide `here <https://rstudio-education.github.io/hopr/starting.html>`__
+- the `R` package ``drf``, which you can install by typing ``install.packages("drf")`` in an R terminal
+- the `Python` package `rpy2>=3.4.1` (you can automatically install it by running ``pip install sempler[DRFNet]``)
+  
 
 To allow for random generation of SCMs and interventional distributions, the module :class:`sempler.generators` contains functions to sample random DAGs and intervention targets.
  

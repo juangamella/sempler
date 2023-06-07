@@ -40,7 +40,7 @@ To install the additional dependencies needed for the semi-synthetic data genera
 pip install sempler[DRFNet]
 ```
 
-to install sempler with the additional `rpy2` dependency. You will also need:
+which will install sempler with the additional `rpy2` dependency. You will also need:
 - an `R` installation; you can find an installation guide [here](https://rstudio-education.github.io/hopr/starting.html)
 - the `R` package `drf`, which you can install by typing `install.packages("drf")` in an R terminal
 
