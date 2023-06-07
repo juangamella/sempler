@@ -20,6 +20,7 @@ For now, only an `R` implementation of distributional random forests [2] is avai
 
 - an `R` installation; you can find an installation guide `here <https://rstudio-education.github.io/hopr/starting.html>`__
 - the `R` package ``drf``, which you can install by typing ``install.packages("drf")`` in an R terminal
+- the `Python` package `rpy2>=3.4.1` (you can automatically install it by running ``pip install sempler[DRFNet]``)
 
 The class is documented below.
   
