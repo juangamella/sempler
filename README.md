@@ -27,7 +27,7 @@ Additionally, you can generate purely synthetic data from general additive-noise
 
 To allow for random generation of SCMs and interventional distributions, the module `sempler.generators` contains functions to sample random DAGs and intervention targets.
 
-### Installation
+## Installation
 
 You can clone this repo or install using pip. To install sempler in its most basic form, i.e. to generate purely synthetic data with `sempler.ANM` and `sempler.LGANM`, simply run
 ```
@@ -45,13 +45,15 @@ You will also need:
 - the `R` package `drf`, which you can install by typing `install.packages("drf")` in an R terminal
 
 
+### Versioning
+
 Sempler is still at its infancy and its API is subject to change. Non backward-compatible changes to the API are reflected by a change to the minor or major version number,
 
 > e.g. *code written using sempler==0.1.2 will run with sempler==0.1.3, but may not run with sempler==0.2.0.*
 
 ## Documentation
 
-You can find the docs at https://sempler.readthedocs.io/en/latest/.
+You can find the full documentation at https://sempler.readthedocs.io/en/latest/.
   
 ## Feedback
 
