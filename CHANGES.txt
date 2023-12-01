@@ -1,3 +1,5 @@
+v0.2.13, 2023-12-01
+-- Added utility functions from ges/gnies packages to sempler, e.g. functions to enumerate CPDAGs and MECs, compute skeletons, vstructures, consistent extensions, etc.
 v0.2.12, 2023-12-01
 -- Fixed bugs in utils.descendants and utils.ancestors
 -- Adedd utils.transitive_closure to compute the transitive closure of a DAG
