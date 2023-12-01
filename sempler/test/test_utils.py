@@ -127,7 +127,7 @@ class UtilsTests(unittest.TestCase):
             fro, to = np.where(A != 0)
             # Test that the ordering is correct, i.e. for every edge x
             # -> y in the graph, x appears before in the ordering
-            for (x, y) in zip(fro, to):
+            for x, y in zip(fro, to):
                 pos_x = np.where(np.array(ordering) == x)[0][0]
                 pos_y = np.where(np.array(ordering) == y)[0][0]
                 self.assertLess(pos_x, pos_y)
@@ -172,77 +172,21 @@ class UtilsTests(unittest.TestCase):
         self.assertTrue([0, 1, 3, 4] == utils.all_but(2, 5))
         self.assertTrue([0, 3, 4] == utils.all_but([1, 2], 5))
 
-    # def test_graph_info_1(self):
-    #     W = np.array([[0., 1., 0., 0., 0., 0., 0., 0.],
-    #                   [0., 0., 0., 0., 0., 0., 0., 0.],
-    #                   [0., 1., 0., 1., 0., 1., 0., 0.],
-    #                   [0., 1., 0., 0., 0., 1., 1., 0.],
-    #                   [1., 0., 0., 0., 0., 0., 1., 0.],
-    #                   [0., 0., 0., 0., 0., 0., 0., 0.],
-    #                   [1., 0., 0., 0., 0., 0., 0., 0.],
-    #                   [1., 0., 0., 0., 1., 1., 0., 0.]])
-    #     true_parents = [{4,6,7},
-    #                     {0,2,3},
-    #                     set(),
-    #                     {2},
-    #                     {7},
-    #                     {2,3,7},
-    #                     {3,4},
-    #                     set()]
-    #     true_children = [{1},
-    #                      set(),
-    #                      {1,3,5},
-    #                      {1,5,6},
-    #                      {0,6},
-    #                      set(),
-    #                      {0},
-    #                      {0,4,5}]
-    #     true_poc = [{2,3},
-    #                 set(),
-    #                 {0,3,7},
-    #                 {0,2,4,7},
-    #                 {3,6,7},
-    #                 set(),
-    #                 {4,7},
-    #                 {2,3,4,6}]
-    #     true_mb = [{4,6,7,1,2,3},
-    #                {0,2,3},
-    #                {1,3,5,0,7},
-    #                {0,1,2,4,5,6,7},
-    #                {7,0,6,7,3},
-    #                {2,3,7},
-    #                {3,4,0,7},
-    #                {0,4,5,2,3,6}]
-    #     for i in range(len(W)):
-    #         #print("Testing info for node %d" %i)
-    #         (parents, children, poc, mb) = utils.graph_info(i, W)
-    #         #print(parents, children, poc, mb)
-    #         self.assertEqual(parents, true_parents[i])
-    #         self.assertEqual(children, true_children[i])
-    #         self.assertEqual(poc, true_poc[i])
-    #         self.assertEqual(mb, true_mb[i])
-
-    # def test_graph_info_2(self):
-    #     graphs = [utils.eg1(), utils.eg2(), utils.eg3(), utils.eg4(), utils.eg5(), utils.eg6()]
-    #     for k,graph in enumerate(graphs):
-    #         (W, true_parents, true_mb) = graph
-    #         for i in range(len(W)):
-    #             #print("%d Testing info for node %d" % (k+1,i))
-    #             (parents, children, poc, mb) = utils.graph_info(i, W)
-    #             #print(parents, children, poc, mb)
-    #             self.assertEqual(parents, set(true_parents[i]))
-    #             self.assertEqual(mb, set(true_mb[i]))
-
-    # def test_stable_blanket(self):
-    #     W, _, markov_blanket = utils.eg5()
-    #     target = 3
-    #     intervened_variables = [set(), {2}, {7}, {6}, {5}]
-    #     truth = [markov_blanket,
-    #              markov_blanket,
-    #              markov_blanket,
-    #              {2, 5, 7},
-    #              {2}]
-    #     interventions = set()
-    #     for i, var in enumerate(intervened_variables):
-    #         interventions.update(var)
-    #         self.assertTrue(truth[i], utils.stable_blanket(target, W, interventions))
+    def test_closure(self):
+        p = 10
+        # Empty graph
+        A = np.zeros((p, p))
+        self.assertTrue((utils.transitive_closure(A) == A).all())
+        # Fully connected
+        A = sempler.generators.dag_full(p)
+        self.assertTrue((utils.transitive_closure(A) == A).all())
+        # Chain graph
+        A = np.array([[0, 1, 0], [0, 0, 1], [0, 0, 0]])
+        closure = np.array([[0, 1, 1], [0, 0, 1], [0, 0, 0]])
+        self.assertTrue((utils.transitive_closure(A) == closure).all())
+        # Common cause
+        A = np.array([[0, 1, 1], [0, 0, 0], [0, 0, 0]])
+        self.assertTrue((utils.transitive_closure(A) == A).all())
+        # Common cause
+        A = np.array([[0, 1, 1], [0, 0, 0], [0, 0, 0]])
+        self.assertTrue((utils.transitive_closure(A) == A).all())

@@ -36,6 +36,7 @@ dependencies networkx and matplotlib.
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
+import sempler.utils as utils
 
 
 def plot_graph(W, labels=None, weights=False, block=False):
@@ -49,20 +50,22 @@ def plot_graph(W, labels=None, weights=False, block=False):
         node_labels = dict(zip(np.arange(p), labels))
     # Plot
     fig = plt.figure()
-    params = {'node_color': 'white',
-              'edgecolors': 'black',
-              'node_size': 900,
-              'linewidths': 1.5,
-              'width': 1.5,
-              'arrowsize': 20,
-              'arrowstyle': '->',
-              'min_target_margin': 10,
-              'labels': node_labels}
+    params = {
+        "node_color": "white",
+        "edgecolors": "black",
+        "node_size": 900,
+        "linewidths": 1.5,
+        "width": 1.5,
+        "arrowsize": 20,
+        "arrowstyle": "->",
+        "min_target_margin": 10,
+        "labels": node_labels,
+    }
     nx.draw(G, pos, **params)
     # Edge weights
     if weights:
-        formatted = dict((e, "%0.3f" % w) for (e, w) in edge_weights(W).items())
-        nx.draw_networkx_edge_labels(G, pos, formatted, font_color='red')
+        formatted = dict((e, "%0.3f" % w) for (e, w) in utils.edge_weights(W).items())
+        nx.draw_networkx_edge_labels(G, pos, formatted, font_color="red")
     fig.set_facecolor("white")
     plt.show(block=block)
 
@@ -90,9 +93,9 @@ def plot_matrix(A, ax=None, vmin=-3, vmax=3, formt="%0.2f", thresh=1e-16, block=
     if ax is None:
         plt.figure()
         ax = plt.gca()
-    ax.imshow(A, vmin=vmin, vmax=vmax, cmap='bwr')
+    ax.imshow(A, vmin=vmin, vmax=vmax, cmap="bwr")
     for i in range(len(A)):
         for j in range(len(A)):
             if A[i, j] != 0:
-                ax.text(j, i, formt % A[i, j], ha='center', va='center')
+                ax.text(j, i, formt % A[i, j], ha="center", va="center")
     plt.show(block=block)

@@ -1,3 +1,7 @@
+v0.2.12, 2023-12-01
+-- Fixed bugs in utils.descendants and utils.ancestors
+-- Adedd utils.transitive_closure to compute the transitive closure of a DAG
+-- Fixed bug in graph plotting with weights
 v0.2.11, 2023-06-07
 -- Minor changes to README
 -- Added drf package into the package list
