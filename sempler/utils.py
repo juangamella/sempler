@@ -99,54 +99,6 @@ def nonzero(A, tol=1e-12):
     return np.where(np.abs(A) > tol)[0]
 
 
-# def graph_info(i, W, interventions=None):
-#     """Returns the parents, children, parents of children and markov
-#     blanket of variable i in DAG W, using the graph structure
-#     """
-#     G = nx.from_numpy_array(W, create_using=nx.DiGraph)
-#     parents = set(G.predecessors(i))
-#     children = set(G.successors(i))
-#     parents_of_children = set()
-#     for child in children:
-#         parents_of_children.update(G.predecessors(child))
-#     if len(children) > 0:
-#         parents_of_children.remove(i)
-#     mb = parents.union(children, parents_of_children)
-#     return (parents, children, parents_of_children, mb)
-
-
-# def stable_blanket(i, W, interventions=set()):
-#     """Return the stable blanket using the graph structure"""
-#     G = nx.from_numpy_array(W, create_using=nx.DiGraph)
-#     parents = set(G.predecessors(i))
-#     children = set(G.successors(i))
-#     unstable_descendants = set()
-#     for j in interventions:
-#         if j in children:
-#             unstable_descendants.update({j})
-#             unstable_descendants.update(nx.algorithms.dag.descendants(G, j))
-#     stable_children = set.difference(children, unstable_descendants)
-#     parents_of_stable_children = set()
-#     for child in stable_children:
-#         parents_of_stable_children.update(G.predecessors(child))
-#     if len(stable_children) > 0:
-#         parents_of_stable_children.remove(i)
-#     sb = set.union(parents, stable_children, parents_of_stable_children)
-#     return sb
-
-
-# def descendants(i, W):
-#     """Return the descendants of a node using the graph structure"""
-#     G = nx.from_numpy_array(W, create_using=nx.DiGraph)
-#     return nx.algorithms.dag.descendants(G, i)
-
-
-# def ancestors(i, W):
-#     """Return the ancestors of a node using the graph structure"""
-#     G = nx.from_numpy_array(W, create_using=nx.DiGraph)
-#     return nx.algorithms.dag.ancestors(G, i)
-
-
 def ancestors(i, A):
     # TODO: This will break if Python's max stack depth is reached
     """The ancestors of i in A.
@@ -162,10 +114,10 @@ def ancestors(i, A):
     nodes : set of ints
         the ancestor nodes
     """
-    ancestors = pa(i, A)
+    anc = pa(i, A)
     for j in pa(i, A):
-        ancestors |= an(j, A)
-    return ancestors
+        anc |= ancestors(j, A)
+    return anc
 
 
 def descendants(i, A):
@@ -183,10 +135,24 @@ def descendants(i, A):
     nodes : set of ints
         the descendant nodes
     """
-    descendants = {i}
+    desc = {i}
     for j in ch(i, A):
-        descendants |= desc(j, A)
-    return descendants
+        desc |= descendants(j, A)
+    return desc
+
+
+def transitive_closure(A):
+    """Perform the transitive closure on the dag A, i.e. a new graph where
+    there is an edge from every node to all its descendants.
+
+    """
+    if not is_dag(A):
+        raise ValueError("The given graph is not a DAG.")
+    closure = np.zeros_like(A)
+    for i in range(len(A)):
+        desc = list(descendants(i, A) - {i})
+        closure[i, desc] = 1
+    return closure
 
 
 def is_dag(A):
