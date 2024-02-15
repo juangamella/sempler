@@ -1,7 +1,7 @@
 # Sempler: generate synthetic and realistic semi-synthetic data with known ground truth for causal discovery
 
-[![PyPI version](https://badge.fury.io/py/ges.svg)](https://badge.fury.io/py/sempler)
-[![Downloads](https://static.pepy.tech/badge/ges)](https://pepy.tech/project/sempler)
+[![PyPI version](https://badge.fury.io/py/sempler.svg)](https://badge.fury.io/py/sempler)
+[![Downloads](https://static.pepy.tech/badge/sempler)](https://pepy.tech/project/sempler)
 [![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 ![Real and semi-synthetic data produced from the Sachs dataset](./docs/marginals.png)
