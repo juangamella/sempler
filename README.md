@@ -14,8 +14,9 @@ If you find this code useful, please consider citing:
 
 ```
 @article{gamella2022characterization,
-  title={Characterization and Greedy Learning of Gaussian Structural Causal Models under Unknown Interventions},
-  author={Gamella, Juan L. and Taeb, Armeen and Heinze-Deml, Christina and B\"uhlmann, Peter},
+  title={Characterization and greedy learning of Gaussian structural causal models under unknown interventions},
+  author={Gamella, Juan L and Taeb, Armeen and Heinze-Deml, Christina and B{\"u}hlmann, Peter},
+  journal={arXiv preprint arXiv:2211.14897},
   year={2022}
 }
 ```
