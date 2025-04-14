@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="sempler",
-    version="0.2.13",
+    version="0.2.14",
     author="Juan L Gamella",
     author_email="juangamella@gmail.com",
     packages=["sempler", "drf"],
