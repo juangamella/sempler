@@ -1,3 +1,5 @@
+v0.2.14, 2025-04-14
+-- Included PR from Alex Markham to be able to suppress warnings from optional dependencies (see issue no. 5)
 v0.2.13, 2023-12-01
 -- Added utility functions from ges/gnies packages to sempler, e.g. functions to enumerate CPDAGs and MECs, compute skeletons, vstructures, consistent extensions, etc.
 v0.2.12, 2023-12-01
